@@ -21,7 +21,7 @@ You don't need coding experience to use it. You just need Claude Code.
 Open your terminal inside your project folder and run:
 
 ```
-git clone https://github.com/skthasan1/ai-production-framework shared
+git clone https://github.com/skthasan1/buildatscale shared
 ```
 
 This downloads the framework into a `shared/` folder inside your project. That's all.
