@@ -5,6 +5,38 @@ Run each step fully before moving to the next. Never skip a step.
 
 ## How to start
 
+### Stack detection (runs once per project, before Step 0)
+
+Before the first pipeline run in a project, detect the tech stack so every step uses
+the right commands. Look for these files to auto-detect:
+
+| File found | Inferred stack |
+|---|---|
+| `package.json` with `next` | Web — Next.js |
+| `package.json` with `expo` or `react-native` | Mobile — React Native/Expo |
+| `package.json` with `electron` | Desktop — Electron |
+| `apps/` with multiple `package.json` | Monorepo — pnpm/npm workspaces |
+| `pyproject.toml` / `requirements.txt` | Python backend |
+| `Cargo.toml` | Rust |
+| `go.mod` | Go |
+| `hardhat.config.*` / `foundry.toml` | Blockchain/Solidity |
+
+If no files are found or detection is ambiguous, ask:
+
+> "What are we building? Pick all that apply:
+> a) Web app  b) Mobile app (iOS/Android)  c) Desktop app  d) API/backend only  e) Other: ___"
+
+Then confirm the **test command** to use throughout this pipeline:
+- Detected from `package.json` scripts? Use that.
+- Monorepo? Suggest `pnpm -r test` or `pnpm --filter <package> test`.
+- Python? `pytest`. Rust? `cargo test`. Go? `go test ./...`
+- Default if nothing found: `pnpm test`
+
+Store the answers as `STACK` and `TEST_CMD` — every skill will use them.
+Only do this once. If the user has already answered, skip straight to Step 0.
+
+---
+
 If no args are given, ask:
 > "What are we building? Describe the feature, fix, or refactor in 1–2 sentences."
 

@@ -1,5 +1,10 @@
 # /wrap — Step 7: Session Wrap-up
 
+<!--
+  TEST_CMD: set by /pipeline at project start, or override here.
+  Default: pnpm test   |   Monorepo: pnpm -r test   |   Python: pytest   |   Rust: cargo test
+-->
+
 Close the session properly: update docs, verify test count, commit, push.
 Must run at the end of every session where code was written.
 
@@ -23,7 +28,7 @@ Make these changes to CLAUDE.md in order:
 
 **b. Total tests** — run the test suite now to get the real count:
 ```
-pnpm test 2>&1 | tail -5
+[TEST_CMD] 2>&1 | tail -5   # use the command confirmed at project start
 ```
 Update the "Total tests" block with the actual number. Do not use the number from
 memory or from earlier in the session — run it fresh.

@@ -1,5 +1,10 @@
 # /audit — Step 4 / Step 6: Audit Checklist
 
+<!--
+  TEST_CMD: set by /pipeline at project start, or override here.
+  Default: pnpm test   |   Monorepo: pnpm -r test   |   Python: pytest   |   Rust: cargo test
+-->
+
 Run the 10-point audit on everything changed in the current session.
 Use for Step 4 (first pass after build) and Step 6 (re-audit after manual test fixes).
 
@@ -81,10 +86,10 @@ Three-layer rule (from `shared/FRAMEWORK.md` Section 9):
 
 ### Point 9 — Test execution ← MUST run, not assert
 
-**Run the test suite now.** Paste the summary output below:
+**Run the test suite now using `TEST_CMD`.** Paste the summary output below:
 
 ```
-pnpm test
+[TEST_CMD]    # the command confirmed at project start via /pipeline
 ```
 
 Output:

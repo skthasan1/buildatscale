@@ -21,7 +21,7 @@
 | 0c — Repo bootstrap | Skeleton repo, CI, core docs | Greenfield — after 0b |
 | 0d — Core documentation | Tier 1 docs filled in | Greenfield — after 0c |
 | 0e — Multi-developer setup | Team conventions, onboarding doc | Any project, when second person joins |
-| 1+ — Feature chunks | One plan-row at a time, through 7-step pipeline | Ongoing |
+| 1+ — Feature chunks | One plan-row at a time, through 8-step pipeline | Ongoing |
 
 ---
 
@@ -140,7 +140,7 @@ The docs are now written. Let's agree on which framework conventions to adopt im
 Current gaps: [PASTE the gap list from Step 1]
 
 Please propose a prioritised adoption order:
-1. Which conventions to adopt RIGHT NOW — apply to all new work from this session forward (e.g. 7-step chunk pipeline, 10-point audit, plan-row claiming).
+1. Which conventions to adopt RIGHT NOW — apply to all new work from this session forward (e.g. 8-step chunk pipeline, 10-point audit, plan-row claiming).
 2. Which conventions to retrofit gradually — apply to existing areas only when touching them for another reason (e.g. adding missing unit tests for existing endpoints, writing manual-test scenarios for existing features).
 3. Which conventions to defer — not worth the cost to retrofit (e.g. renaming old branches, reformatting git history).
 
@@ -160,7 +160,7 @@ If multiple developers will use the framework, run Phase 0e after 0x completes.
 - [ ] `docs/testing-strategy.md` committed with real test counts per layer
 - [ ] Locked decisions register seeded with existing implicit decisions
 - [ ] Conventions adoption order agreed (immediate vs gradual vs deferred)
-- [ ] All new work from here uses the 7-step chunk pipeline
+- [ ] All new work from here uses the 8-step chunk pipeline
 
 ---
 
@@ -332,7 +332,7 @@ Show me each deliverable before writing it.
 
 ## Phase 1+ — Feature chunks
 
-**What it produces:** One shipped plan-row per chunk, through the 7-step pipeline.
+**What it produces:** One shipped plan-row per chunk, through the 8-step pipeline.
 
 **When to run:** Ongoing, for every feature.
 

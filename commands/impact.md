@@ -52,9 +52,26 @@ ambiguous ownership, unclear contracts). These must be resolved before Step 1 de
 **5. End with:**
 `✅ Impact assessment complete. Proceed to /design when ready.`
 
-## Stack-specific additions
+## Stack-specific additions (only if applicable)
 
-Add rows to this output for your stack in CLAUDE.md:
-- **Electron/IPC-heavy**: IPC chain — does the channel name or payload shape change?
-- **tRPC**: Does the procedure input/output shape change? Desktop IPC proxy + web client + test mocks all break simultaneously.
-- **React**: useEffect deps — any state that effects should react to, but don't?
+Only answer these for your project's actual stack. Skip any that don't apply.
+
+**Electron / native desktop:**
+- IPC chain: does the channel name or payload shape change? Main handler + preload bridge + type declaration + renderer call site must ALL be updated together. Missing one = silent runtime break with no TypeScript error.
+- Platform sync: does this affect a value mirrored in the OS (tray menu, dock badge)? Both native and renderer sides must be updated.
+
+**tRPC / typed RPC (GraphQL, gRPC):**
+- Does the procedure input schema or return type change? Every layer that wraps it — proxy, client hook, test mock — breaks simultaneously even though each compiles individually.
+
+**React / frontend:**
+- useEffect deps: is there state the effect should react to but doesn't? Stale closures are the silent failure.
+
+**React Native / Expo / mobile:**
+- Native module bridge: does the change touch a native module API? JS side + native iOS + native Android must all match.
+- Device permissions: does the feature need a new permission? Update `Info.plist` (iOS) and `AndroidManifest.xml` (Android).
+
+**Blockchain / smart contracts:**
+- ABI change: every client that imports the ABI needs regeneration after a contract interface change.
+- Gas impact: does the change add on-chain computation? Estimate gas before shipping.
+
+To add project-specific rows, add an "Impact analysis additions" section to your CLAUDE.md.

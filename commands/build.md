@@ -1,5 +1,18 @@
 # /build — Step 3: Build
 
+<!--
+  TEST_CMD: command to run your test suite.
+  Set this once — /pipeline auto-detects it, or you can override here.
+  Examples:
+    pnpm test              (single package)
+    pnpm -r test           (all packages in monorepo)
+    pnpm --filter web test (specific package)
+    pytest                 (Python)
+    cargo test             (Rust)
+    go test ./...          (Go)
+  Default: pnpm test
+-->
+
 Implement the approved design. Write auto-tests alongside the code, not afterward.
 
 ## Input
@@ -41,8 +54,7 @@ Stay scoped to the plan-row. If you discover an adjacent issue:
 
 When implementation is complete, run:
 ```
-pnpm test          # unit tests
-pnpm test:e2e      # E2E tests (if affected by this change)
+[TEST_CMD]         # use the command detected/confirmed by /pipeline at project start
 ```
 
 Paste the summary output. Fix any failures before proceeding. A green suite is

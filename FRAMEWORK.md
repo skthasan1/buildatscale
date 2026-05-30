@@ -366,6 +366,8 @@ Present 2–3 design options with their trade-offs. Don't just describe one appr
 
 **Multi-developer:** Post your design proposal in the PR description (open a draft PR) or in your team channel, not just to Claude. Other developers review the design before implementation starts. Catching design conflicts in writing is 10× cheaper than catching them in code review.
 
+> **Solo:** skip team review — confirm the chosen option with yourself (or Claude) and move to Step 2. **Team:** post in PR description or channel and wait for sign-off before proceeding.
+
 ### Step 2 — Docs first
 
 Update all three doc categories BEFORE writing any code:
@@ -390,7 +392,7 @@ Run the 10-point audit checklist (Section 8) on your own code. **This is not opt
 
 Run the MFT scripts you wrote in Step 2 against a real running instance. This means actually starting the app, executing each scenario step by step, and reporting the result (pass / fail / unexpected behaviour). Automated tests catch regressions; manual tests catch what the test author didn't think to write a test for.
 
-**Claude runs the MFT scripts** — not describes them, not defers them to the user. Open the app, follow each script, report findings. If the app can't be started in this environment, say so explicitly and flag which scenarios need human verification.
+**Claude runs the MFT scripts** — not describes them, not defers them to the user. Open the app, follow each script, report findings. If the app can't be started in this environment (CI, headless, sandbox, missing credentials), say so explicitly, list which scenarios need human verification, and mark them in `docs/manual-test.md` as `[ ] requires human — [reason]`.
 
 ### Step 6 — Re-audit
 
@@ -401,6 +403,8 @@ After fixing anything from Step 5, re-run the audit. Fixes often introduce new i
 Mark the plan-row ✅ done in `docs/project-log.md`. Update CLAUDE.md: current status, test count (run the suite, use the real number), append session note. Commit and push.
 
 **Multi-developer:** Open the PR with the plan-row ID in the title (e.g. `[A-05] User profile endpoint`). Mark the plan-row ✅ done in the same PR. PR description includes: plan-row ID, design summary, testing notes, audit checklist results.
+
+> **Solo:** commit directly to your feature branch. No PR required. Still commit + push — "pushed" is the only state that's safe if the machine fails. **Team:** open a PR, get at least one review against the 10-point audit before merging.
 
 ---
 
@@ -646,6 +650,8 @@ If two PRs modify the same database migration, that's a process failure — migr
 ---
 
 ## 12. Multi-developer workflow
+
+> **Solo developer?** This entire section is optional — skip it. The framework works fine for a solo developer; the multi-developer conventions (chunk claiming, PR reviews, handoff notes, session ownership) exist to prevent two people from colliding. If it's just you, use what's useful and ignore the rest.
 
 How multiple developers use this framework simultaneously without stepping on each other.
 

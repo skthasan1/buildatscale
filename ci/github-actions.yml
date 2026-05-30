@@ -1,0 +1,152 @@
+# Build@Scale with AI — Starter CI Pipeline
+#
+# Copy this file to .github/workflows/ci.yml and customise the marked sections.
+# Works for: web, API, mobile (build only), monorepo.
+# Every PR must pass all jobs before merging — this is the CI gate the audit checklist assumes.
+#
+# ── CUSTOMISE THESE ────────────────────────────────────────────────────────────
+# 1. NODE_VERSION — match your .nvmrc or engines.node in package.json
+# 2. PACKAGE_MANAGER — pnpm | npm | yarn
+# 3. TEST_CMD — your test command (see examples)
+# 4. BUILD_CMD — your build command
+# 5. Remove jobs that don't apply to your stack
+# ───────────────────────────────────────────────────────────────────────────────
+
+name: CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
+
+env:
+  NODE_VERSION: "20"          # ← change to match your project
+  PACKAGE_MANAGER: "pnpm"    # ← pnpm | npm | yarn | bun
+
+jobs:
+
+  # ── 1. Type check ────────────────────────────────────────────────────────────
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4         # ← remove if not using pnpm
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: ${{ env.PACKAGE_MANAGER }}
+      - run: pnpm install --frozen-lockfile   # ← swap for npm ci / yarn install
+      # TypeScript projects:
+      - run: pnpm exec tsc --noEmit          # ← swap for: npm run typecheck, npx tsc --noEmit
+      # Python projects: replace above two steps with:
+      # - run: pip install -r requirements.txt && mypy .
+      # Go projects: go vet ./...
+
+  # ── 2. Lint ──────────────────────────────────────────────────────────────────
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: ${{ env.PACKAGE_MANAGER }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint                        # ← swap for: npm run lint, yarn lint
+      # Python: flake8 . / ruff check .
+      # Rust: cargo clippy -- -D warnings
+
+  # ── 3. Unit tests ────────────────────────────────────────────────────────────
+  test:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: ${{ env.PACKAGE_MANAGER }}
+      - run: pnpm install --frozen-lockfile
+      # ── choose your TEST_CMD ──────────────────────────────────────────────
+      - run: pnpm test                    # single package
+      # - run: pnpm -r test               # all packages in monorepo
+      # - run: pnpm --filter api test     # specific monorepo package
+      # - run: pytest                     # Python
+      # - run: cargo test                 # Rust
+      # - run: go test ./...              # Go
+      # ─────────────────────────────────────────────────────────────────────
+      env:
+        # Add test-only env vars here (never real secrets — use GitHub Secrets for those)
+        NODE_ENV: test
+
+  # ── 4. Build verification ─────────────────────────────────────────────────────
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: [typecheck, lint, test]  # only build if checks pass
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with: { version: 10 }
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: ${{ env.PACKAGE_MANAGER }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build                   # ← swap for your build command
+      # Monorepo: pnpm -r build
+      # Python: docker build . (if containerised)
+      # Mobile (Expo): npx expo export (dry run — no device needed)
+
+  # ── 5. Secrets guard ─────────────────────────────────────────────────────────
+  # Fails the build if any .env files or known secret patterns appear in the diff.
+  # Cheap insurance — runs in seconds.
+  secrets-guard:
+    name: Secrets guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need full history to diff
+      - name: Check for committed secrets
+        run: |
+          # Fail if any .env files were committed (except .env.example)
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD 2>/dev/null | grep -E '^\.env(\.[^e]|$)'; then
+            echo "❌ .env file committed — remove it and rotate any exposed secrets"
+            exit 1
+          fi
+          # Fail if common secret patterns appear in changed files
+          if git diff origin/${{ github.base_ref }}...HEAD 2>/dev/null | grep -E \
+            '(AKIA[A-Z0-9]{16}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY|sk-[a-zA-Z0-9]{32,})'; then
+            echo "❌ Possible secret pattern detected in diff"
+            exit 1
+          fi
+          echo "✅ No secrets detected"
+
+  # ── 6. E2E tests (optional — enable when you have them) ──────────────────────
+  # e2e:
+  #   name: E2E tests
+  #   runs-on: ubuntu-latest
+  #   needs: [build]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4
+  #       with: { version: 10 }
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: pnpm
+  #     - run: pnpm install --frozen-lockfile
+  #     - run: pnpm exec playwright install --with-deps chromium
+  #     - run: pnpm test:e2e
+  #       env:
+  #         # Pass only what E2E needs — use GitHub Secrets for sensitive values
+  #         DATABASE_URL: ${{ secrets.E2E_DATABASE_URL }}
