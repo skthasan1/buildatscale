@@ -35,10 +35,12 @@ This downloads the framework into a `shared/` folder inside your project. That's
 Open Claude Code in your project folder. Copy and paste this **exactly**:
 
 ```
-Set up the production framework: copy shared/commands/*.md to .claude/commands/ and copy shared/settings-template.json to .claude/settings.json. Then read shared/FRAMEWORK.md so you understand the methodology. Confirm when done.
+Set up the production framework: copy shared/commands/*.md to .claude/commands/, copy shared/settings-template.json to .claude/settings.json, and copy shared/VERSION to .claude/buildatscale-version. Then read shared/FRAMEWORK.md so you understand the methodology. Confirm when done.
 ```
 
 Claude will set everything up automatically. It takes about 30 seconds.
+
+> The `buildatscale-version` file records which version you have installed. It's what the `/upgrade` command uses to show you only what changed since your install.
 
 ---
 
@@ -92,6 +94,38 @@ None of this requires you to know how to code. You describe what you want. Claud
 - Git installed (`git --version` in your terminal — if it prints a version number, you have it)
 
 That's it.
+
+---
+
+## Upgrading
+
+When a new version is released, upgrading takes two commands:
+
+```bash
+# 1. Pull the latest framework
+git -C shared pull
+
+# 2. Apply the upgrade (Claude handles the rest)
+/upgrade
+```
+
+`/upgrade` will:
+- Show you exactly what changed since your installed version
+- Auto-update the skill files in `.claude/commands/`
+- Flag any breaking changes that need manual action
+- Update your installed version record
+
+You can always check what version you have installed:
+```bash
+cat .claude/buildatscale-version
+```
+
+And what's available in your local copy:
+```bash
+cat shared/VERSION
+```
+
+To see full release history and what's coming: [github.com/skthasan1/buildatscale/releases](https://github.com/skthasan1/buildatscale/releases)
 
 ---
 
@@ -156,6 +190,18 @@ Instead of `/pipeline` (guided), run individual steps:
 | `/audit` | 10-point review of current changes |
 | `/mft` | Claude runs your manual test scripts |
 | `/wrap` | Close session: update docs, commit, push |
+
+### What's in the shared/ folder
+
+| File | Purpose |
+|---|---|
+| `FRAMEWORK.md` | Full methodology reference — pipeline, impact analysis, audit checklist, testing pyramid, branching, release, common gotchas |
+| `PLAYBOOK.md` | Project startup guide — from blank idea to first feature, step by step |
+| `CHANGELOG.md` | Full version history with breaking changes clearly marked |
+| `VERSION` | Current version string — copied to `.claude/buildatscale-version` on install |
+| `commands/*.md` | Source for all 9 slash commands — copy to `.claude/commands/` to activate |
+| `settings-template.json` | Default permission allowlist — stops Claude prompting for read-only ops |
+| `ci/github-actions.yml` | Starter CI — typecheck + lint + tests + build + secrets guard. Copy to `.github/workflows/ci.yml` and customise the marked sections. |
 
 ### Keep the methodology, swap the tools
 
