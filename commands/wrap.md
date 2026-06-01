@@ -48,23 +48,51 @@ If the test count changed, update `docs/testing-strategy.md` per the 4-case rule
 
 ### 4. Commit and push
 
-Stage changed files. Commit with a message in the format:
+Stage changed files. Commit with a message in Conventional Commits format:
 ```
-[plan-row ID] [short description]
+type(scope): short description
+
+Types: feat | fix | chore | docs | refactor | test | perf
 
 Co-Authored-By: Claude [model] <noreply@anthropic.com>
 ```
 
-Push to the current branch. Never leave uncommitted changes at end of session.
+Push to `dev`. Never leave uncommitted changes at end of session.
 
-### 5. Confirm
+### 5. Open PR if shipping to production
+
+If changes are ready for production, open a PR from `dev` → `main`.  
+**Never merge directly to `main`** — the PR gives a Vercel preview URL to verify first.
+
+```bash
+gh pr create \
+  --base main --head dev \
+  --title "release: YYYY-MM-DD — [one-line summary]" \
+  --body "$(cat <<'EOF'
+## Changes
+- type(scope): ...
+
+## Vercel preview
+- [ ] Verified on preview URL: [paste URL]
+
+## Tests
+- [ ] Unit tests passing
+- [ ] No TypeScript errors in source
+EOF
+)"
+```
+
+Verify on Vercel preview → merge PR → production auto-deploys.
+
+### 6. Confirm
 
 ```
 ✅ Session wrap-up complete:
    - Plan-row [ID] marked ✅ done
    - CLAUDE.md updated (status, [N] tests, session note)
    - Committed: [commit hash]
-   - Pushed: [branch name]
+   - Pushed: dev
+   - PR opened: [URL] (if shipping to prod)
    
 Session closed.
 ```

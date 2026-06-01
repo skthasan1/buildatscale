@@ -630,39 +630,76 @@ If a row sits "in progress" for more than a session without commits, the assigne
 
 ## 11. Branching strategy
 
-Single rule: `main` is always shippable. Everything else lives on feature branches.
+Single rule: `main` is always shippable. Everything else lives on `dev` or feature branches. **Never push directly to `main` — always use a PR.**
 
 ### Branch naming
 
+- Integration: `dev` — long-lived; accumulates features before each production release
 - Feature: `feature/[ID]-[short-slug]` — e.g. `feature/A-05-user-profile`
 - Fix: `fix/[short-slug]` — e.g. `fix/lightbox-overflow`
-- Release: `release/[component]-v[version]` — e.g. `release/desktop-v0.2.0`
 
-### PR title convention
+### Commit message convention (Conventional Commits)
 
-`[ID] Title in plain English` — e.g. `[A-05] User profile endpoint`
+```
+type(scope): short description
 
-Plan-row ID always first. Makes the changelog auto-readable.
+Types:  feat | fix | chore | docs | refactor | test | perf
+Scopes: web | api | worker | desktop | ci | db | contracts | deps
+```
+
+Examples: `feat(web): activate macOS download buttons` · `fix(api): guard self-like` · `chore(ci): fix release race condition`
+
+### PR workflow — dev → main
+
+Every production deploy goes through a PR. Never merge directly.
+
+**Step 1 — push dev and get preview URL:**
+```bash
+git push origin dev    # Vercel auto-deploys preview
+```
+
+**Step 2 — open PR:**
+```bash
+gh pr create \
+  --base main --head dev \
+  --title "release: YYYY-MM-DD — [one-line summary]" \
+  --body "$(cat <<'EOF'
+## Changes
+- feat(scope): ...
+- fix(scope): ...
+
+## Vercel preview
+- [ ] Verified on preview URL: [paste URL]
+
+## Tests
+- [ ] Unit tests passing
+- [ ] No TypeScript errors in source
+EOF
+)"
+```
+
+**Step 3 — verify on preview, then merge.** Production deploys automatically.
+
+**PR title format:** `release: YYYY-MM-DD — [brief summary of batch]`
 
 ### Review process
 
-In a small team (2–4 people), every PR gets at least one review from someone who didn't write it. Solo: open a PR against `main`, run the 10-point audit on yourself, and merge after CI passes.
-
-Reviewer runs the 10-point audit checklist mentally. Not a "looks good" review. Specific feedback: "Point 3 — what happens when the input is empty?" "Point 8 — I don't see an E2E test for the failure path."
+Solo: open the PR, run the 10-point audit on yourself, verify on Vercel preview, merge.  
+Team: at least one review from someone who didn't write it. Reviewer runs the 10-point audit.
 
 ### Rules
 
-1. `main` is deployable at all times. Never push directly to `main`.
+1. `main` is deployable at all times. **Never push directly to `main`.**
 2. All feature work on `dev` or feature branches off `dev`.
 3. PRs from `dev` → `main` are merge commits, not squash. The git history is useful.
-4. **Once live:** `main` is frozen. Tag releases. Every deploy is a deliberate merge.
-5. Hotfixes: branch off `main`, fix, merge to `main` AND back-merge to `dev`.
+4. Hotfixes: branch off `main`, fix, PR back to `main` AND back-merge to `dev`.
+5. Tag desktop/component releases after merge: `git tag [component]-v[semver] && git push origin [tag]`
 
 ### Conflict resolution
 
 If two PRs touch the same file, the second author rebases on top of the first after the first merges. Don't merge-resolve blindly.
 
-If two PRs modify the same database migration, that's a process failure — migrations must be serialized (Section 11). Only one open migration PR at a time.
+If two PRs modify the same database migration, that's a process failure — migrations must be serialized. Only one open migration PR at a time.
 
 ---
 
@@ -929,7 +966,15 @@ Push the tag → CI builds → CI publishes → users get the update. No manual 
 
 ### GitHub Actions release workflow
 
-Triggered on tag push matching the pattern. Skeleton (adapt per stack):
+Use a **4-job pipeline** to avoid the race condition where parallel platform builds compete to create the same GitHub Release:
+
+```
+create-release (draft) → build-windows + build-mac (parallel) → publish-release (latest)
+```
+
+**Why not `electron-builder --publish always`?** It uses the `package.json` version (e.g. `v0.1.0`) to name the release, ignoring the git tag (`desktop-v0.1.0`). Two parallel jobs both calling it race to create the same release — one wins, one silently fails to upload its assets. The 4-job pattern eliminates this entirely.
+
+Skeleton (adapt per stack):
 
 ```yaml
 on:
@@ -938,38 +983,56 @@ on:
       - 'desktop-v*'
 
 permissions:
-  contents: write   # needed to create GitHub Releases
+  contents: write
 
 jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - name: Extract tag
+        id: tag
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      - name: Create draft release
+        run: gh release create "${{ steps.tag.outputs.tag }}" --title "..." --draft
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
   build-windows:
+    needs: create-release
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 10 }
-      - uses: actions/setup-node@v4
-        with: { node-version: 20, cache: pnpm }
-      - run: pnpm install --frozen-lockfile
-      # CI empty-.env guard: extraResources needs the file to exist
-      - run: if (!(Test-Path apps/desktop/.env)) { New-Item apps/desktop/.env -ItemType File | Out-Null }
-        shell: pwsh
-      - run: pnpm --filter @app/desktop release
+      # ... install deps, build with dist:win (NOT release/--publish always)
+      - name: Upload assets
+        shell: bash
+        run: gh release upload "${{ needs.create-release.outputs.tag }}" dist/app-setup.exe --clobber
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: windows-installer
-          path: apps/desktop/dist/app-setup.exe   # stable name, no version in filename
 
   build-mac:
+    needs: create-release
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - run: touch apps/desktop/.env
-      # ... same steps as Windows
+      # ... install deps, build with dist:mac (NOT release/--publish always)
+      - name: Upload assets
+        run: gh release upload "${{ needs.create-release.outputs.tag }}" dist/app-arm64.zip dist/app-x64.zip --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  publish-release:
+    needs: [create-release, build-windows, build-mac]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish as latest
+        run: gh release edit "${{ needs.create-release.outputs.tag }}" --draft=false --latest
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 ```
 
-Each platform = separate job (different runner, different signing, different artifact format).
+Release stays draft until both platforms succeed — users never see a half-built release. Each platform = separate job (different runner, different signing, different artifact format).
 
 ### Stable artifact names
 
