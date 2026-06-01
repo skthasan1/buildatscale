@@ -1,7 +1,15 @@
 # /pipeline — 8-Step Development Pipeline
 
 Guide the user through the complete 8-step pipeline from `shared/FRAMEWORK.md`.
-Run each step fully before moving to the next. Never skip a step.
+Run each step fully before moving to the next. **Never skip a step — including
+during production firefighting.** The pipeline exists precisely for high-pressure
+moments: skipping the audit is how one bug becomes two.
+
+**Hotfix / production outage mode:** Compress each step to its minimum, but do
+not omit it. Before writing a single line of code, state the impact (Step 0) and
+confirm the approach (Step 1). After building, run the ONE test that covers the
+changed code (Step 4 abbreviated). After merging, update CLAUDE.md (Step 7).
+A 5-minute compressed pipeline beats a 2-hour regression investigation.
 
 ## How to start
 

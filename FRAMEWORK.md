@@ -352,6 +352,23 @@ Every feature flows through these eight steps. A "chunk" is one plan-row — sma
 impact → design → docs → build → audit → manual test → re-audit → wrap-up
 ```
 
+> **The pipeline applies in ALL situations — including production firefighting.**
+> The temptation to skip steps when the site is down is exactly when bugs get
+> shipped to production. A 30-second audit would have caught the `history.length > 1`
+> bug before it reached main. A 2-minute MFT check would have confirmed the back
+> navigation fix worked. Skipping steps under pressure is how one broken thing
+> becomes two broken things.
+>
+> **Hotfix mode (production outage):** Compress but never skip.
+> - Step 0: 2 min — what files does this touch, what tests cover it?
+> - Step 1: 1 min — confirm the fix approach before writing a line of code
+> - Step 3: build + run the ONE test that covers this code path immediately
+> - Step 4: run audit Points 4 (bugs), 8 (tests), 9 (test output) only
+> - Step 7: update CLAUDE.md and push — don't leave the session without docs
+>
+> A hotfix that skips the audit and breaks a test is worse than a 10-minute delay.
+> **The audit is faster than explaining the regression.**
+
 ### Step 0 — Impact assessment
 
 Before anything else, run the impact analysis (Section 7 — the 7-question blast-radius checklist). State the findings explicitly in the conversation: "Data layer: migration needed. Shared contracts: `DiscoveryPhoto` type changes — 3 consumers. Adjacent risk: `advance()` in Slideshow.tsx touches 6 other features." If you can't answer a question, that's a design gap — resolve it here, not mid-implementation.
