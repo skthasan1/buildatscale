@@ -10,6 +10,30 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.2.0] — 2026-06-01
+
+### Added
+- **Hotfix mode specification** in FRAMEWORK.md pipeline section. Documents that the
+  pipeline must never be skipped — including during production firefighting. Defines
+  a compressed hotfix checklist: Step 0 (2 min impact), Step 1 (1 min approach
+  confirm), Step 3 (build + run targeted test), Step 4 abbreviated (Points 4/8/9
+  only), Step 7 (update docs). Earned from a real incident where skipping the audit
+  shipped a broken E2E test to production.
+- **`/pipeline` skill reinforcement**: no-skip guarantee added at the top of the skill
+  file so it's the first thing read before any pipeline run.
+
+### Changed
+- FRAMEWORK.md pipeline intro now includes the hotfix mode callout as a prominent
+  blockquote before Step 0, not buried in session wrap-up.
+
+### Why this matters
+> "The audit is faster than explaining the regression." — Skipping audit under
+> pressure is how one broken thing becomes two. Compress steps, never omit them.
+
+---
+
+---
+
 ## [2.1.0] — 2026-05-28
 
 ### Added
