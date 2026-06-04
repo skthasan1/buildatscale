@@ -46,7 +46,7 @@ Any new plan-rows filed. Any deferred items.]
 If the test count changed, update `docs/testing-strategy.md` per the 4-case rule
 (Section 9 of `shared/FRAMEWORK.md`). Layer counts must match the actual test output.
 
-### 4. Commit and push
+### 4. Commit and push to dev
 
 Stage changed files. Commit with a message in Conventional Commits format:
 ```
@@ -55,6 +55,17 @@ type(scope): short description
 Types: feat | fix | chore | docs | refactor | test | perf
 
 Co-Authored-By: Claude [model] <noreply@anthropic.com>
+```
+
+**Then push as a separate command** — never chain `git push` with `&&` after the commit.
+The `ask` permission rule only fires when `git push` is the start of the command:
+```bash
+# ✅ Correct — push triggers the ask rule
+git add ... && git commit -m "..."
+git push origin dev
+
+# ❌ Wrong — rule never matches, push goes through silently
+git add ... && git commit -m "..." && git push origin dev
 ```
 
 Push to `dev`. Never leave uncommitted changes at end of session.

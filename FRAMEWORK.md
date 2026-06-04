@@ -694,6 +694,12 @@ Team: at least one review from someone who didn't write it. Reviewer runs the 10
 3. PRs from `dev` → `main` are merge commits, not squash. The git history is useful.
 4. Hotfixes: branch off `main`, fix, PR back to `main` AND back-merge to `dev`.
 5. Tag desktop/component releases after merge: `git tag [component]-v[semver] && git push origin [tag]`
+6. **`git push` must be a standalone command** — never chain it with `&&` after a commit.
+   Permission rules (the `ask` list in settings.json) match against the full command string.
+   `Bash(git push origin dev*)` only fires when the command *starts with* `git push origin dev`.
+   A chained `git add ... && git commit ... && git push origin dev` starts with `git add` —
+   the rule never matches and the push goes through without asking.
+   Always issue push as its own separate command.
 
 ### Conflict resolution
 
@@ -1247,6 +1253,8 @@ Pre-collected failure modes that recurred enough to be worth writing down.
 - **Server Components don't have access to client state.** If a component reads from `localStorage` or `window`, it must be a Client Component (`"use client"`).
 - **`next/link` in jsdom tests fails to resolve** without an alias. Add `'next/link': require.resolve('next/link')` to your Vitest resolve config.
 - **Hydration mismatches** from date formatting, random IDs, or feature flags. Either render the same value on server and client, or use a `useEffect` to populate after mount.
+- **CSP `connect-src` blocks Vercel preview API calls.** The Vercel preview web app calls the Vercel preview API at `https://[project]-git-[branch]-[team].vercel.app`. This URL is not in your prod CSP (`connect-src https://api.yourapp.com`). Add `https://*.vercel.app` to `connect-src` so previews can talk to each other.
+- **`toLocaleDateString()` with `undefined` locale** produces different output per OS/browser locale (DD/MM vs MM/DD ambiguity). Always pass `"en-US"` explicitly, or better: centralise in a `formatDate()` helper so it's consistent everywhere.
 
 ### Database / migrations
 
@@ -1255,6 +1263,10 @@ Pre-collected failure modes that recurred enough to be worth writing down.
 - **`updateMany` is atomic; `findFirst` + `update` is not.** Use the atomic form when avoiding races.
 - **Partial unique indexes need raw SQL** in some ORMs (e.g. Prisma doesn't support them natively).
 - **Default values in migrations don't backfill existing rows.** Add a separate `UPDATE` statement if needed.
+
+### Redis
+
+- **ioredis and @upstash/redis have different `set` TTL syntax.** ioredis uses positional args: `redis.set(key, value, "EX", seconds)`. Upstash REST client uses an options object: `redis.set(key, value, { ex: seconds })`. Mixing them compiles fine but the TTL is silently ignored — the key is set without expiry. This bypasses rate limits and cooldown logic. If your app switched from Upstash to ioredis, grep for `{ ex:` in all redis.set calls.
 
 ### CI / release
 
