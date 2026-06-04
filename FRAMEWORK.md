@@ -1253,6 +1253,7 @@ Pre-collected failure modes that recurred enough to be worth writing down.
 - **Server Components don't have access to client state.** If a component reads from `localStorage` or `window`, it must be a Client Component (`"use client"`).
 - **`next/link` in jsdom tests fails to resolve** without an alias. Add `'next/link': require.resolve('next/link')` to your Vitest resolve config.
 - **Hydration mismatches** from date formatting, random IDs, or feature flags. Either render the same value on server and client, or use a `useEffect` to populate after mount.
+- **`CORS_ORIGIN` in the API must include the production web domain from day one.** A common mistake is setting `CORS_ORIGIN=http://localhost:3000` during development and forgetting to add the prod domain. Result: the entire prod site fails CORS checks on every API call. Minimum value: `https://yourdomain.com,http://localhost:3000`. Vercel preview URLs are handled by regex in code — they don't need to be in `CORS_ORIGIN`.
 - **CSP `connect-src` blocks Vercel preview API calls.** The Vercel preview web app calls the Vercel preview API at `https://[project]-git-[branch]-[team].vercel.app`. This URL is not in your prod CSP (`connect-src https://api.yourapp.com`). Add `https://*.vercel.app` to `connect-src` so previews can talk to each other.
 - **`toLocaleDateString()` with `undefined` locale** produces different output per OS/browser locale (DD/MM vs MM/DD ambiguity). Always pass `"en-US"` explicitly, or better: centralise in a `formatDate()` helper so it's consistent everywhere.
 
@@ -1263,6 +1264,8 @@ Pre-collected failure modes that recurred enough to be worth writing down.
 - **`updateMany` is atomic; `findFirst` + `update` is not.** Use the atomic form when avoiding races.
 - **Partial unique indexes need raw SQL** in some ORMs (e.g. Prisma doesn't support them natively).
 - **Default values in migrations don't backfill existing rows.** Add a separate `UPDATE` statement if needed.
+- **Run `migrate:prod` immediately after merging any PR that contains a schema change.** If you forget, every endpoint that touches the migrated table returns 500 on prod. If the auth middleware reads that table (which it does on every request), the entire site goes down for all users — not just the new feature.
+- **Auth middleware reads the DB on every request.** Adding a new column to a table that auth middleware reads (e.g. `isAuthed` reading `AlphaInvite.status`) without migrating = 100% of authenticated users get 500. Treat auth-middleware table changes as the highest-urgency migrations.
 
 ### Redis
 
