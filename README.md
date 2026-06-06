@@ -35,10 +35,10 @@ This downloads the framework into a `shared/` folder inside your project. That's
 Open Claude Code in your project folder. Copy and paste this **exactly**:
 
 ```
-Set up the production framework: copy shared/commands/*.md to .claude/commands/, copy shared/settings-template.json to .claude/settings.json, and copy shared/VERSION to .claude/buildatscale-version. Then read shared/FRAMEWORK.md so you understand the methodology. Make sure to update the project and your memory to strictly follow the framework. Confirm when done.
+Set up the production framework: copy shared/commands/*.md to .claude/commands/, copy shared/settings-template.json to .claude/settings.json, and copy shared/VERSION to .claude/buildatscale-version. Then read shared/FRAMEWORK.md so you understand the methodology. After setup: run a full gap analysis — compare the current project state against the FRAMEWORK.md Session 0 checklist — then build everything missing (CLAUDE.md, Tier 1 docs, test baseline, plan-rows) before starting any feature work. Report what was built.
 ```
 
-Claude will set everything up automatically. It takes about 30 seconds.
+Claude will set everything up and build any missing framework components automatically. It takes 2–5 minutes depending on how much is missing.
 
 > The `buildatscale-version` file records which version you have installed. It's what the `/upgrade` command uses to show you only what changed since your install.
 

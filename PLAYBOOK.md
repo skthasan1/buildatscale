@@ -33,6 +33,8 @@
 
 **The retrofit mindset:** You're not rebuilding the project — you're writing down what it already is. Docs must match reality, not the other way around. Don't refactor the code to fit the docs; document what the code actually does, then plan improvements as new chunks.
 
+**Auto-build mode:** After Step 1 diagnosis, Claude should proceed automatically through Steps 2–6 — building every missing component without waiting for per-step prompting. The goal is a fully framework-compliant project ready for Phase 1+ in a single session. Only pause when a decision is genuinely ambiguous (e.g. you can't determine the intended audience from the code alone).
+
 ### Step 1 — Archaeology (understand what exists)
 
 ```
@@ -51,7 +53,7 @@ Please:
 4. Flag anything that would conflict with the framework conventions — e.g. informal branching, no test suite, docs that contradict each other.
 5. Rank the gaps: what missing piece creates the most day-to-day pain right now?
 
-Don't write anything yet. Just diagnose.
+When diagnosis is complete, proceed immediately through Steps 2–6 — build every missing component without waiting for separate prompts. Start with CLAUDE.md (everything else references it), then Tier 1 docs in order, then test baseline, then plan-rows. Report a brief summary of what was built when done.
 ```
 
 ### Step 2 — Write Tier 1 docs from code

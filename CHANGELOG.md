@@ -10,6 +10,66 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.4.0] — 2026-06-05
+
+### Added
+- **Auto-build after gap analysis** in `README.md` initiate prompt and `PLAYBOOK.md`
+  Phase 0x. The setup prompt now instructs Claude to run a full gap analysis after
+  installing the framework and build everything missing (CLAUDE.md, Tier 1 docs, test
+  baseline, plan-rows) in the same session — without waiting for per-step prompting.
+- **Auto-build mode note** in Phase 0x — explicit instruction that Claude should
+  proceed through Steps 2–6 automatically after archaeology, pausing only when a
+  decision is genuinely ambiguous (e.g. intended audience can't be inferred from code).
+- **Phase 0x Step 1 close instruction** — prompt now ends with "proceed immediately
+  through Steps 2–6 — build every missing component without waiting for separate prompts."
+
+### Why this matters
+> When applied to an existing project, the old initiate prompt stopped at "Confirm
+> when done" — leaving the user to manually drive through each PLAYBOOK step. Many
+> docs were missing and never got built. The new prompt closes the loop automatically:
+> install → gap analysis → build everything → ready for Phase 1+.
+
+---
+
+## [2.3.2] — 2026-06-04
+
+### Added
+- **§17 gotchas** (FRAMEWORK.md): `CORS_ORIGIN` must include the production domain
+  (not just localhost); `AlphaInvite` / auth middleware migration risk (site-wide 500
+  if the migrated table is read before migration runs on prod — run `migrate:prod`
+  immediately after merge); `pnpm/action-setup` version conflict (`version:` key in CI
+  conflicts with `packageManager` in package.json).
+
+---
+
+## [2.3.1] — 2026-06-03
+
+### Added
+- **§17 gotchas** (FRAMEWORK.md): CSP `connect-src` must include `https://*.vercel.app`
+  for Vercel preview deployments; ioredis `redis.set(key, val, "EX", seconds)` syntax
+  vs Upstash `{ ex: seconds }` (silently ignored); global date format helpers instead
+  of `toLocaleDateString()`.
+
+---
+
+## [2.3.0] — 2026-06-02
+
+### Added
+- **PR-only workflow for dev→main** (§11, §14): never push directly to `main`; always
+  open a PR so there's a Vercel preview URL to verify before going live. PR title format
+  documented: `release: YYYY-MM-DD — [summary]`.
+- **4-job CI pipeline for desktop releases** (§14): `create-release (draft)` →
+  `build-windows + build-mac (parallel)` → `publish-release (latest)`. Eliminates the
+  race condition where two parallel jobs compete to create the same GitHub Release.
+- **`git push` standalone rule** (§11): `git push origin <branch>` must be issued as a
+  standalone command, never chained with `&&` after a commit. Ask rules only fire when
+  the command starts with `git push` — chaining bypasses the prompt.
+- **Post-merge migration step** (§11 branching): if a PR contains a Prisma migration,
+  run `migrate:prod` immediately after merge. Deferring it causes site-wide 500s if any
+  auth middleware reads the migrated table.
+
+---
+
 ## [2.2.0] — 2026-06-01
 
 ### Added
