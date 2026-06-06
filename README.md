@@ -35,7 +35,7 @@ This downloads the framework into a `shared/` folder inside your project. That's
 Open Claude Code in your project folder. Copy and paste this **exactly**:
 
 ```
-Set up the production framework: copy shared/commands/*.md to .claude/commands/, copy shared/settings-template.json to .claude/settings.json, and copy shared/VERSION to .claude/buildatscale-version. Then read shared/FRAMEWORK.md so you understand the methodology. Confirm when done.
+Set up the production framework: copy shared/commands/*.md to .claude/commands/, copy shared/settings-template.json to .claude/settings.json, and copy shared/VERSION to .claude/buildatscale-version. Then read shared/FRAMEWORK.md so you understand the methodology. Make sure to update the project and your memory to strictly follow the framework. Confirm when done.
 ```
 
 Claude will set everything up automatically. It takes about 30 seconds.
