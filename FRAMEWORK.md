@@ -391,7 +391,7 @@ Update all three doc categories BEFORE writing any code:
 
 1. **Plan-row** — mark it 🔧 in progress in `docs/project-log.md`. This claims the chunk.
 2. **API/data docs** — API reference for new endpoints, data model for schema changes. Writing the contract before the implementation forces you to think through the interface.
-3. **MFT scripts** — write the manual functional test scenarios in `docs/manual-test.md` NOW. You'll run these in Step 5. Writing them before coding forces you to think about the user-facing behaviour before getting lost in implementation details.
+3. **MFT scripts** — write the manual functional test scenarios in `docs/manual-test.md` NOW. You'll run these in Step 5. Writing them before coding forces you to think about the user-facing behaviour before getting lost in implementation details. Use the table format — one section per feature with `| # | Scenario | Steps | Expected | Status | Notes |` columns and `⬜/✅/❌` status values. See `/docsup` for the exact template.
 
 If the design changes during implementation, update docs and code together in the same commit. Never let docs drift.
 
@@ -520,7 +520,7 @@ Every feature ships with all three layers. Skipping one will eventually bite you
 
 **E2E tests** — browser-driven (or platform-driven for desktop/mobile). Cover real user flows end-to-end. Slower, fewer, exercise the full stack including database, queue workers, and external service mocks.
 
-**Manual test scenarios** — written in `docs/manual-test.md` as numbered steps. Run by a human against a real running instance. Catches issues automated tests can't: visual regressions, timing, perceived performance, copy errors.
+**Manual test scenarios** — written in `docs/manual-test.md` as a table per feature (`| # | Scenario | Steps | Expected | Status | Notes |`). Status uses `⬜` (pending), `✅` (passed), `❌` (failed). Run against a real running instance. Catches issues automated tests can't: visual regressions, timing, perceived performance, copy errors.
 
 ### testing-strategy.md self-maintenance rule
 

@@ -10,6 +10,18 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.4.1] — 2026-06-09
+
+### Fixed
+- **MFT scenario format standardised** — `docsup.md` now prescribes the compact table
+  format (`| # | Scenario | Steps | Expected | Status | Notes |`) with `⬜/✅/❌`
+  status values and a **Date tested** header per section. The old verbose multi-line
+  prose format (`**Precondition:**`, `**Steps:**`, `**Pass/fail:** [ ]`) is replaced.
+  `FRAMEWORK.md` Step 2 and the "Manual test scenarios" definition in Section 9 both
+  reference the table format and link to `/docsup` for the template.
+
+---
+
 ## [2.4.0] — 2026-06-05
 
 ### Added

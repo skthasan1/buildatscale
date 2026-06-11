@@ -37,21 +37,26 @@ Add numbered scenarios to `docs/manual-test.md` for the feature being built.
 These will be run in Step 5 (`/mft`). Writing them now forces you to think about
 user-facing behaviour before getting lost in implementation details.
 
-MFT scenario format:
+MFT scenario format — use a table per feature section:
+```markdown
+## [Feature ID]: [Feature name]
+**Date tested:** pending
+**Files:** `path/to/changed/file.ts`, `path/to/component.tsx`
+
+| # | Scenario | Steps | Expected | Status | Notes |
+|---|---|---|---|---|---|
+| 1 | Happy path description | Step 1 → Step 2 → Step 3 | What the user sees/experiences | ⬜ | |
+| 2 | Error / edge case | Trigger the edge condition | What should happen | ⬜ | |
+| 3 | Regression guard — adjacent feature still works | Use the adjacent feature normally | It works unchanged | ⬜ | Regression guard |
 ```
-## [Feature name] — [scenario description]
-**Precondition:** [what state the system must be in]
-**Steps:**
-1. [exact action]
-2. [exact action]
-**Expected result:** [what the user should see/experience]
-**Pass/fail:** [ ]
-```
+
+Status values: `⬜` = not yet tested, `✅` = passed, `❌` = failed (file a fix before closing the session).
+Update **Date tested** and all statuses when running `/mft`.
 
 Write at least:
 - The happy path (feature works as designed)
 - One error/edge case
-- One regression guard (something that should NOT break)
+- One regression guard (something adjacent that should NOT break)
 
 ### 4. Confirm
 
