@@ -692,11 +692,16 @@ Team: at least one review from someone who didn't write it. Reviewer runs the 10
 ### Rules
 
 1. `main` is deployable at all times. **Never push directly to `main`.**
-2. All feature work on `dev` or feature branches off `dev`.
-3. PRs from `dev` → `main` are merge commits, not squash. The git history is useful.
-4. Hotfixes: branch off `main`, fix, PR back to `main` AND back-merge to `dev`.
-5. Tag desktop/component releases after merge: `git tag [component]-v[semver] && git push origin [tag]`
-6. **`git push` must be a standalone command** — never chain it with `&&` after a commit.
+2. All feature work on `dev` or feature branches off `dev`. **Never code directly on `main`.**
+3. PRs from `dev` → `main` use **merge commits** (not squash). The full commit history is preserved and `dev` stays intact after merge.
+4. **After every PR merge — switch back to `dev`:**
+   ```bash
+   git checkout dev
+   git pull origin dev   # picks up the merge commit
+   ```
+5. Hotfixes: branch off `main`, fix, PR back to `main` AND back-merge to `dev`.
+6. Tag desktop/component releases after merge: `git tag [component]-v[semver] && git push origin [tag]`
+7. **`git push` must be a standalone command** — never chain it with `&&` after a commit.
    Permission rules (the `ask` list in settings.json) match against the full command string.
    `Bash(git push origin dev*)` only fires when the command *starts with* `git push origin dev`.
    A chained `git add ... && git commit ... && git push origin dev` starts with `git add` —

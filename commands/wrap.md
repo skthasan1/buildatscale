@@ -99,15 +99,14 @@ Only proceed if the user explicitly says to merge (e.g. "merge it", "go ahead an
 
 ### 6. After merge — return to dev
 
-Once the user merges the PR, switch back to `dev` immediately. Squash merges with
-`--delete-branch` delete the remote `dev` branch, so recreate it if needed:
+Once the user merges the PR, switch back to `dev` immediately:
 
 ```bash
-git fetch --prune
-git checkout dev 2>/dev/null || git checkout -b dev origin/main
-git push -u origin dev   # only needed if recreating
+git checkout dev
+git pull origin dev
 ```
 
+PRs must be merged with a **merge commit** (not squash) so `dev` stays intact and the full history is preserved.
 Never start the next session's work on `main`. Verify you are on `dev` before writing any code.
 
 ### 6. Confirm
