@@ -10,6 +10,17 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.4.3] — 2026-06-14
+
+### Fixed
+- **Branching strategy clarified** — `FRAMEWORK.md` §11, `commands/wrap.md`, and
+  `docs/branching-strategy.md` now all agree: PRs use **merge commits** (not squash),
+  `dev` is never deleted after merge, and after every PR merge the next step is
+  `git checkout dev && git pull origin dev`. Squash merge was removed as the default
+  because it deletes the dev branch and loses commit history.
+
+---
+
 ## [2.4.2] — 2026-06-14
 
 ### Fixed
