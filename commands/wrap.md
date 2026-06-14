@@ -97,6 +97,19 @@ EOF
 Do NOT merge the PR — merging is the user's action, not yours.  
 Only proceed if the user explicitly says to merge (e.g. "merge it", "go ahead and merge").
 
+### 6. After merge — return to dev
+
+Once the user merges the PR, switch back to `dev` immediately. Squash merges with
+`--delete-branch` delete the remote `dev` branch, so recreate it if needed:
+
+```bash
+git fetch --prune
+git checkout dev 2>/dev/null || git checkout -b dev origin/main
+git push -u origin dev   # only needed if recreating
+```
+
+Never start the next session's work on `main`. Verify you are on `dev` before writing any code.
+
 ### 6. Confirm
 
 ```
@@ -105,7 +118,8 @@ Only proceed if the user explicitly says to merge (e.g. "merge it", "go ahead an
    - CLAUDE.md updated (status, [N] tests, session note)
    - Committed: [commit hash]
    - Pushed: dev
-   - PR opened: [URL] (if shipping to prod)
+   - PR opened: [URL] (if shipping to prod) — awaiting user approval
+   - Active branch: dev (confirmed)
    
 Session closed.
 ```
