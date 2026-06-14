@@ -423,6 +423,8 @@ Mark the plan-row ✅ done in `docs/project-log.md`. Update CLAUDE.md: current s
 
 > **Solo:** commit directly to your feature branch. No PR required. Still commit + push — "pushed" is the only state that's safe if the machine fails. **Team:** open a PR, get at least one review against the 10-point audit before merging.
 
+> **PR approval rule (non-negotiable):** Claude creates the PR and stops. Merging is the human's action — always. "Let's merge" means create the PR for review, not create-and-merge in one shot. Never call `gh pr merge` or equivalent without an explicit instruction to merge a PR that is already open and has been reviewed.
+
 ---
 
 ### End-of-session close checklist (mandatory — every session where code was written)

@@ -10,6 +10,16 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.4.2] — 2026-06-14
+
+### Fixed
+- **PR approval rule added** — `FRAMEWORK.md` Step 7 and `commands/wrap.md` Step 5
+  now include an explicit non-negotiable rule: Claude creates the PR and stops;
+  merging is always the human's action. "Let's merge" means create the PR for
+  review, not create-and-merge in one shot.
+
+---
+
 ## [2.4.1] — 2026-06-09
 
 ### Fixed

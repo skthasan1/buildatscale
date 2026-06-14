@@ -93,7 +93,9 @@ EOF
 )"
 ```
 
-Verify on Vercel preview → merge PR → production auto-deploys.
+**STOP HERE.** Share the PR URL and wait for the user to review and approve.  
+Do NOT merge the PR — merging is the user's action, not yours.  
+Only proceed if the user explicitly says to merge (e.g. "merge it", "go ahead and merge").
 
 ### 6. Confirm
 
