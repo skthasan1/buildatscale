@@ -10,6 +10,17 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.4.4] — 2026-06-14
+
+### Fixed
+- **Post-upgrade audit required** — `/upgrade` now explicitly prompts the user to
+  run `/audit` after every framework upgrade. Upgrading applies new rules to skill
+  files but cannot check whether the existing project already meets them — only
+  an audit can do that. `README.md` Upgrading section updated to show the three-step
+  sequence: `git -C shared pull` → `/upgrade` → `/audit`.
+
+---
+
 ## [2.4.3] — 2026-06-14
 
 ### Fixed

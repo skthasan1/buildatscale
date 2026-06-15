@@ -101,7 +101,7 @@ Write the new version to `.claude/buildatscale-version`:
 [new version]
 ```
 
-### 9. Summary
+### 9. Summary + follow-up audit
 
 ```
 ✅ Upgrade complete: v2.0.0 → v2.1.0
@@ -111,10 +111,23 @@ Settings: merged 3 new allow rules
 New files: ci/github-actions.yml (copied)
 
 No breaking changes — no manual steps required.
-
-Next: run your test suite to confirm everything still works.
-[TEST_CMD]
 ```
+
+Then always prompt:
+
+```
+Next step: run /audit on your project.
+
+New framework rules may flag gaps in your existing code or docs that
+weren't caught under the old version. This is the only way to know if
+anything needs fixing — the upgrade applies the new rules but doesn't
+check whether your project already meets them.
+
+Run: /audit
+```
+
+This is not optional. An upgrade that applies new rules without checking
+compliance is incomplete. The audit is the second half of the upgrade.
 
 ---
 

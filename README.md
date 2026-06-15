@@ -99,7 +99,7 @@ That's it.
 
 ## Upgrading
 
-When a new version is released, upgrading takes two commands:
+When a new version is released, upgrading takes **three steps**:
 
 ```bash
 # 1. Pull the latest framework
@@ -107,13 +107,24 @@ git -C shared pull
 
 # 2. Apply the upgrade (Claude handles the rest)
 /upgrade
+
+# 3. Audit your project against the new rules  ← do not skip
+/audit
 ```
+
+`/upgrade` applies the new framework rules to your skill files and settings.
+`/audit` checks whether your **existing project** already meets those rules.
+
+Without the audit, you know the rules changed but not whether your project
+is compliant. New framework versions often tighten rules around docs, tests,
+or edge cases — the audit is how you find out if anything needs fixing.
 
 `/upgrade` will:
 - Show you exactly what changed since your installed version
 - Auto-update the skill files in `.claude/commands/`
 - Flag any breaking changes that need manual action
 - Update your installed version record
+- Prompt you to run `/audit` when done
 
 You can always check what version you have installed:
 ```bash
