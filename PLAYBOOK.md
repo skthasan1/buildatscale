@@ -35,6 +35,10 @@
 
 **Auto-build mode:** After Step 1 diagnosis, Claude should proceed automatically through Steps 2–6 — building every missing component without waiting for per-step prompting. The goal is a fully framework-compliant project ready for Phase 1+ in a single session. Only pause when a decision is genuinely ambiguous (e.g. you can't determine the intended audience from the code alone).
 
+> **Infrastructure gaps found?** If Step 1 reveals missing CI, `.env.example`, or test runners,
+> run `/foundation` after Step 6 — it's a 9-point checklist purpose-built for verifying
+> infrastructure basics. Faster than checking each item manually.
+
 ### Step 1 — Archaeology (understand what exists)
 
 ```
@@ -238,6 +242,11 @@ Treat each choice as locked once I agree. Future sessions should not re-litigate
 **What it produces:** Skeleton repo, CI pipeline, Tier 1 docs, `.env.example`.
 
 **When to run:** After 0b is complete.
+
+> **Shortcut:** Run `/scaffold` instead of this phase. It handles Phase 0a–0c interactively
+> in one session — requirements, architecture decisions, and repo scaffolding — without
+> needing to copy-paste prompts manually. Use the manual prompts below if you prefer
+> more control over each step.
 
 ### Paste-into-Claude prompt
 

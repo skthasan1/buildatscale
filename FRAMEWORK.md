@@ -64,7 +64,7 @@ The framework is heavy by design. Light frameworks optimize for the first week. 
 
 ## 2. Session 0 bootstrap checklist
 
-**Starting fresh?** Complete this checklist before writing any feature code.
+**Starting fresh?** Run `/scaffold` — it guides you through requirements, architecture decisions, and repo scaffolding interactively, then calls `/foundation` automatically. The manual checklist below is the reference for what `/scaffold` produces.
 
 **Existing codebase?** Use the **Phase 0x — Retrofit** path in PLAYBOOK.md instead. It walks you through reverse-engineering docs from existing code, baselining the test suite, and agreeing on which conventions to adopt immediately vs gradually vs defer. Return here for individual checklist items as gaps are closed.
 
@@ -346,7 +346,18 @@ Tier 1 must exist before code. Tier 2 grows with the codebase. Tier 3 must exist
 
 ## 6. The 8-step chunk pipeline
 
-Every feature flows through these eight steps. A "chunk" is one plan-row — small enough to ship in one session, large enough to be meaningful.
+Every **feature** flows through these eight steps. For infrastructure sessions (setting up CI, env vars, new packages, docs), use `/foundation` instead — it's purpose-built for that work.
+
+**Session type map:**
+
+| Session type | What you're doing | Skills to use |
+|---|---|---|
+| New project | Starting from scratch | `/scaffold` → (auto-calls `/foundation`) → `/wrap` |
+| Infrastructure | CI, env vars, monorepo wiring, docs setup | `/foundation` → `/wrap` |
+| Feature work | Any plan-row — code, tests, API | Full 8-step pipeline (ends with `/wrap`) |
+| Upgrade | New framework version | `git pull` → `/upgrade` → `/audit` → `/wrap` |
+
+A "chunk" is one plan-row — small enough to ship in one session, large enough to be meaningful.
 
 ```
 impact → design → docs → build → audit → manual test → re-audit → wrap-up

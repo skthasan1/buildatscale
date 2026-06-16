@@ -10,6 +10,46 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.5.0] — 2026-06-16
+
+### Added
+- **`/scaffold` skill** — 5-step new-project guide for greenfield projects:
+  (1) requirements gathering (product, platforms, team, constraints, MVP scope);
+  (2) architecture decisions (monorepo, frontend, backend, database, auth, deployment —
+  2–3 options each, wait for approval, record in locked-decisions); (3) repo scaffolding
+  (directory structure, CI, core docs, app skeletons, `.env.example`, test runners);
+  (4) `/foundation` check; (5) first commit. Replaces the manual Phase 0a–0c PLAYBOOK
+  path for new projects.
+- **`/foundation` skill** — 9-point reactive infrastructure checklist for sessions
+  where you set up or change infrastructure (not feature code): (1) `.env.example`
+  complete; (2) `.gitignore` covers all categories; (3) secrets guard in CI;
+  (4) CI pipeline configured; (5) dev quickstart complete; (6) test baseline exits 0;
+  (7) package/monorepo wiring; (8) Tier 1 docs baseline; (9) pushed. Output mirrors
+  `/audit` format (PASS/FAIL per point). Replaces `/audit` + `/mft` for infrastructure
+  sessions. Also called automatically by `/scaffold` step 4.
+
+### Changed
+- **README.md** — Workflow map updated to show three session types and which skills each
+  uses. Commands table updated to include `/scaffold` and `/foundation`. "For Savvy
+  Developers" commands table updated to show 11 skills.
+- **FRAMEWORK.md** — §2 Session 0 checklist references `/scaffold` for greenfield;
+  §6 pipeline intro references `/foundation` for infrastructure sessions; new §18
+  "Session type map" documents the three session workflows.
+- **PLAYBOOK.md** — Phase 0c prompt notes that `/scaffold` handles the same work
+  interactively; Phase 0x Step 1 tip added for `/foundation` on infra gaps.
+
+### Why this matters
+> When setting up a new project, the old PLAYBOOK.md path (0a → 0b → 0c → 0d) required
+> the user to manually drive 4 separate prompt sessions. `/scaffold` collapses all of
+> that into one guided conversation that covers requirements, architecture decisions,
+> and repo setup without switching docs. `/foundation` fills the gap identified when
+> adding CI or infra to an existing project — the old `/audit` was too feature-centric
+> (it expected code to review), and `/mft` assumed features to test. Now every session
+> type has a clear closing skill: feature work → `/audit` + `/mft`; infra work →
+> `/foundation`; both followed by `/wrap`.
+
+---
+
 ## [2.4.4] — 2026-06-14
 
 ### Fixed

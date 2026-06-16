@@ -188,19 +188,33 @@ Open `.claude/commands/impact.md` and add a "Stack-specific additions" section a
 
 Open `.claude/commands/audit.md` and add project-specific audit points. For regulated industries, add compliance checks. For large teams, add multi-reviewer requirements.
 
+### Session type map — which skills to use when
+
+Three types of sessions, each with its own closing skill:
+
+| Session type | Trigger | Skills | Closes with |
+|---|---|---|---|
+| **New project** | Starting from scratch | `/scaffold` → (calls `/foundation`) | `/wrap` |
+| **Infrastructure** | Adding CI, env vars, docs, wiring | `/foundation` | `/wrap` |
+| **Feature work** | Building any plan-row | `/pipeline` (runs all 8 steps) | `/wrap` (built into pipeline) |
+| **Upgrade** | New framework version released | `git -C shared pull` → `/upgrade` → `/audit` | `/wrap` |
+
 ### Run individual pipeline steps
 
 Instead of `/pipeline` (guided), run individual steps:
 
 | Command | When to use |
 |---|---|
-| `/impact` | Before any change — maps blast radius |
-| `/design` | When you want options before committing |
+| `/scaffold` | Starting a brand-new project — gathers requirements, makes architecture decisions, scaffolds the repo |
+| `/foundation` | After any infrastructure session — 9-point checklist (env, gitignore, CI, docs, tests, wiring) |
+| `/impact` | Before any feature change — maps blast radius |
+| `/design` | When you want 2–3 options before committing |
 | `/docsup` | Update docs before coding |
 | `/build` | Implement + auto-tests |
-| `/audit` | 10-point review of current changes |
+| `/audit` | 10-point review after building a feature |
 | `/mft` | Claude runs your manual test scripts |
 | `/wrap` | Close session: update docs, commit, push |
+| `/upgrade` | Apply a new framework version |
 
 ### What's in the shared/ folder
 
@@ -210,7 +224,7 @@ Instead of `/pipeline` (guided), run individual steps:
 | `PLAYBOOK.md` | Project startup guide — from blank idea to first feature, step by step |
 | `CHANGELOG.md` | Full version history with breaking changes clearly marked |
 | `VERSION` | Current version string — copied to `.claude/buildatscale-version` on install |
-| `commands/*.md` | Source for all 9 slash commands — copy to `.claude/commands/` to activate |
+| `commands/*.md` | Source for all 11 slash commands — copy to `.claude/commands/` to activate |
 | `settings-template.json` | Default permission allowlist — stops Claude prompting for read-only ops |
 | `ci/github-actions.yml` | Starter CI — typecheck + lint + tests + build + secrets guard. Copy to `.github/workflows/ci.yml` and customise the marked sections. |
 
