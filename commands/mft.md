@@ -39,6 +39,9 @@ If a scenario FAILS:
 - Record exactly what happened (what was shown vs what was expected)
 - Note whether it's a UI issue, a data issue, or a logic error
 - Do NOT fix it during this step — just record it
+- **Always log it in `docs/bug-report.md`** — copy the entry template, assign the next BUG-NNN ID,
+  fill in test ID, steps, expected, actual, and your name. Update the bug index table.
+  This applies regardless of whether you are the developer or a tester — the log is always first.
 
 ### 3. Check for regressions
 
@@ -62,13 +65,21 @@ Summary: [N] passed, [M] failed
 
 ### 5. Next steps
 
-- If all PASS: proceed to `/audit` (Step 6 re-audit)
-- If any FAIL: fix the issues, then re-run the failed scenarios before re-auditing
-  - File new plan-rows for anything out of scope
-  - Do not silently skip failing scenarios
+- All PASS → proceed to `/audit` (Step 6 re-audit) or report results if running independently
+- Any FAIL → the bug is already logged (Step 2). Now decide:
+  - **Fix now (same session):** create a plan row, fix the issue, merge the commit, update the bug
+    entry (status: `fixed`, add commit reference), re-run the scenario, confirm PASS, close the bug.
+    `Added by` and `Resolved by` being the same person is fine — the trail is still there.
+  - **Hand off:** leave status `open`. The next developer to pick it up creates the plan row and
+    follows the same fix → re-run → close cycle.
+
+Either way, no bug is silently fixed without a log entry. That is the rule.
 
 ## Notes
 
 Manual tests catch what automated tests don't: visual issues, timing, perceived
 performance, copy errors, confusing UX flows. The goal is to experience the feature
 as a user would, not to tick a box.
+
+The bug log (`docs/bug-report.md`) is append-only — never edit another person's lines.
+Add comments with your name and date; let the status and Resolved by fields tell the story.

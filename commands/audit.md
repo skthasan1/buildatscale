@@ -113,6 +113,11 @@ to un-skip. "Tests should be passing" is not a substitute for running them.
 - `docs/testing-strategy.md` updated (4-case rule from `shared/FRAMEWORK.md` Section 9)?
 - All shipped plan-rows marked ✅ done in `docs/project-log.md`?
 
+Bug log check (`docs/bug-report.md`):
+- Any `open` bugs with no plan row? Either assign one or add a comment explaining the deferral.
+- Any `fixed` bugs the test team hasn't re-run? Hold — do not mark release done until verified.
+- Any bug this session's fix touches? Update its status (open → fixed) and add the commit reference.
+
 ---
 
 ## Output format

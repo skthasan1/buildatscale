@@ -10,6 +10,40 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.5.3] — 2026-06-18
+
+### Added
+- **§19 Bug tracking** — new FRAMEWORK.md section with a lightweight in-repo bug log workflow:
+  - `docs/bug-report.md` format: summary index table + individual entries (test ID, status,
+    added by, resolved by, steps, expected/actual, comments). Entries are append-only — no editing
+    another person's lines.
+  - Three statuses: `open` (filed) → `fixed` (fix merged) → `closed` (re-run confirmed PASS).
+    `Added by` and `Resolved by` can be the same person — the trail is what matters.
+  - Single unified flow: anyone who runs a test and finds a FAIL always logs it first, then
+    decides to fix now or hand off. No developer-vs-tester mode split.
+  - Linking convention: bug entries reference scenario IDs (e.g. `BAO-04 #3`); plan rows
+    reference bug IDs (e.g. `BUG-001`); commits reference both.
+  - Anti-patterns documented: silent fix (no log), stale `fixed` (never re-run), unassigned
+    `open` bugs older than 7 days.
+- **`docs/bug-report.md` template** — shipped with the framework; projects create this file
+  at setup. Includes: status key, workflow instructions for filing / fixing / closing, the index
+  table, and a copy-paste entry template.
+- **`/mft` skill updated** — FAIL path now always logs to `docs/bug-report.md` first.
+  Step 5 "Next steps" simplified to a single flow (fix now vs hand off) — no developer/tester
+  mode distinction.
+- **`/audit` Point 10 extended** — bug log check added: open bugs without a plan row must be
+  assigned or explicitly deferred; `fixed` bugs without a re-run block a release.
+- **`/foundation` Point 8 updated** — `docs/bug-report.md` added to the Tier 1 docs baseline
+  table (must exist, even if empty).
+
+### Why this matters
+> Previously, bugs found during manual testing were either fixed silently (no record) or filed
+> in a developer's head (no handoff). The bug log creates a paper trail with three explicit
+> states: who found it, who fixed it, and who verified the fix — without needing an external
+> issue tracker, and without complex role separation.
+
+---
+
 ## [2.5.2] — 2026-06-18
 
 ### Added

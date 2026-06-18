@@ -1463,6 +1463,122 @@ The wrapping significantly raises the bar but does not eliminate injection risk 
 
 ---
 
+## 19. Bug tracking
+
+A lightweight in-repo bug log that gives the test team, developers, and the AI agent a shared source of truth — without needing an external issue tracker.
+
+### Why in-repo
+
+- Bugs are versioned alongside the code that caused and fixed them
+- Every entry has a clear owner (Added by / Resolved by) — no silent overwrites
+- The three-status flow creates explicit handoff gates between QA and dev
+
+### Status flow
+
+```
+Anyone runs a scenario → FAIL
+  → always logs bug first (status: open, added by: [name])
+    → Decide: fix now or hand off?
+
+Fix now (same session):
+  → plan row → fix → commit
+    → update bug (status: fixed, commit reference)
+      → re-run scenario
+        → PASS → close bug (status: closed, resolved by: same person — that's fine)
+        → FAIL → add comment, status stays open
+
+Hand off:
+  → leave status: open
+    → another person picks it up → plan row → fix → same cycle above
+```
+
+**The rule is: no bug is silently fixed.** The log entry always comes first, regardless of who runs the test or who fixes it. `Added by` and `Resolved by` being the same person is completely valid — the trail exists either way.
+
+**The `fixed` middle state is the re-run gate.** The person who marks `fixed` is not the one who closes it — they re-run the scenario fresh and confirm PASS before closing. This catches "fixed on my machine" failures.
+
+### Three statuses
+
+| Status | Set by | Meaning |
+|---|---|---|
+| **open** | Test team | Filed — no developer assigned yet |
+| **fixed** | Developer | Fix merged — awaiting test team re-run |
+| **closed** | Test team | Re-run passed — or bug marked invalid |
+
+### Bug entry format
+
+Store all bugs in `docs/bug-report.md`. Each bug is an individual entry:
+
+```markdown
+## BUG-NNN
+
+**Test ID:** [scenario ID from manual-test.md, e.g. BAO-04 #3]
+**Status:** open | fixed | closed
+**Added by:** [name] — [YYYY-MM-DD]
+**Summary:** [one sentence]
+
+**Steps to reproduce:**
+1. [exact action]
+2. [exact action]
+
+**Expected:** [what should happen]
+**Actual:** [what actually happened]
+
+**Comments:**
+- [YYYY-MM-DD] [name]: [observation — append only, never edit others' lines]
+
+**Plan row:** BUG-NNN (link to project-log.md row when developer picks it up)
+**Resolved by:** [name] — [YYYY-MM-DD]
+```
+
+A quick-summary table at the top of `bug-report.md` gives a one-glance status view:
+
+```markdown
+| ID | Test ID | Summary | Status | Added by | Resolved by |
+|---|---|---|---|---|---|
+| BUG-001 | BAO-04 #3 | Share button missing on mobile | fixed | Sarah | Siva |
+```
+
+### Linking convention
+
+| Artifact | References |
+|---|---|
+| Bug entry | Test scenario ID (e.g. `BAO-04 #3`) |
+| Plan row | Bug ID (e.g. `BUG-001 — fix share button`) |
+| Fix commit | Bug ID in message (e.g. `fix(web): BUG-001 share button on mobile`) |
+| Re-run note | Closes the bug entry with date and verifier name |
+
+### How to run a test (anyone)
+
+Follow `docs/manual-test.md` — scenarios are self-contained (precondition → steps → expected result):
+1. Set up the precondition
+2. Execute each step exactly as written
+3. Compare actual to expected
+4. **PASS** → move on
+5. **FAIL** → log an entry in `docs/bug-report.md` first, then decide: fix now or hand off
+
+### How to pick up a bug
+
+1. Read `docs/bug-report.md` — find an `open` entry with no plan row
+2. Add `BUG-NNN | 🔧 in progress | [title]` to `docs/project-log.md`
+3. Fix the issue; reference the bug ID in the commit message (e.g. `fix(web): BUG-001 share button`)
+4. Update the bug entry: fill **Plan row** and **Resolved by**, add a comment with the commit hash, change status to `fixed`
+5. Re-run the specific scenario from `docs/manual-test.md` — confirm PASS, then change status to `closed`
+
+### Anti-patterns
+
+- **Silent fix** — developer fixes a bug without logging it. The test team doesn't know to re-run the scenario; it may regress without anyone noticing.
+- **Stale `fixed` entries** — developer marks `fixed` but test team never re-runs. Bug sits in limbo; regression potential rises.
+- **Missing plan row** — bug is logged but no developer claims it. Add a triage step: any `open` bug over 7 days with no plan row should be triaged in the next dev session.
+
+### When to use `/audit` Point 10 check
+
+Before marking any release done, read `docs/bug-report.md`:
+- Any `open` bugs with no plan row? File them or consciously defer (add a comment explaining why).
+- Any `fixed` bugs the test team hasn't verified? Hold the release until they re-run.
+- Any `closed` bugs that regressed? Re-open with a new comment and create a new plan row.
+
+---
+
 **Last updated: 2026-06-18** — distilled from real production development experience. Every rule here exists because something broke when it wasn't followed.
 
 *Starting fresh: copy FRAMEWORK.md + PLAYBOOK.md to repo root, run Session 0 checklist, follow 7-step pipeline. Existing codebase: start with Phase 0x — Retrofit in PLAYBOOK.md.*

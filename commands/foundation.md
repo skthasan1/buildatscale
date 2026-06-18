@@ -132,6 +132,7 @@ Check that Tier 1 docs exist (from `shared/FRAMEWORK.md` Section 5):
 | `docs/project-log.md` | Must exist, must have at least the Phase 0 rows |
 | `docs/architecture.md` | Must exist, even if brief |
 | `docs/dev-setup-guide.md` | Covered in Point 5 |
+| `docs/bug-report.md` | Must exist (even if empty) — the test team's bug log |
 
 Also check: if a new service, env var, or infrastructure decision was added this session,
 is it reflected in `CLAUDE.md` and the relevant docs?
