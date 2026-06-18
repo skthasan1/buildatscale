@@ -180,6 +180,16 @@ The framework ships with pnpm + TypeScript defaults. After install, open `.claud
 }
 ```
 
+> **Windows / PowerShell:** On Windows, Claude Code uses the `PowerShell` tool, not `Bash`.
+> A `Bash(...)` rule does **not** match a `PowerShell(...)` call — and vice versa. This matters
+> most for the `ask` list: if `git push` guards are `Bash`-only, they are silently bypassed when
+> Claude runs the command through PowerShell. Always add both variants for any `ask` rule:
+> ```json
+> "Bash(git push origin main*)",
+> "PowerShell(git push origin main*)"
+> ```
+> The `shared/settings-template.json` ships both variants for every rule.
+
 ### Add stack-specific impact analysis
 
 Open `.claude/commands/impact.md` and add a "Stack-specific additions" section at the bottom for the patterns that matter in your codebase. For example, if you use tRPC you'd add: *"tRPC shape: does the procedure input/output change? All proxies and mocks break simultaneously."*

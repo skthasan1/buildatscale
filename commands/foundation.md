@@ -136,6 +136,22 @@ Check that Tier 1 docs exist (from `shared/FRAMEWORK.md` Section 5):
 Also check: if a new service, env var, or infrastructure decision was added this session,
 is it reflected in `CLAUDE.md` and the relevant docs?
 
+### Point 8b — Settings dual-tool coverage (Windows check)
+
+> Skip this point on macOS/Linux where only the `Bash` tool is used.
+
+On Windows, Claude Code uses the `PowerShell` tool. A `Bash(...)` permission rule does NOT
+match a `PowerShell(...)` call — guards are silently bypassed if only `Bash` variants exist.
+
+Check `.claude/settings.json`:
+- Every entry in the `ask` list has a matching `PowerShell(...)` variant alongside `Bash(...)`
+- Every entry in the `allow` list has a matching `PowerShell(...)` variant (prevents prompt spam)
+
+Run: `grep -c "PowerShell" .claude/settings.json` — should be ≥ 6 (one per `ask` entry at minimum).
+
+If `PowerShell` entries are missing: FAIL. Copy from `shared/settings-template.json` — it ships
+both `Bash` and `PowerShell` variants for every rule.
+
 ### Point 9 — Push
 
 Confirm all changes are committed and pushed:

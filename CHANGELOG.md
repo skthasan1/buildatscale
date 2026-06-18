@@ -10,6 +10,32 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.5.1] — 2026-06-18
+
+### Fixed
+- **PowerShell / dual-tool permission rules** — On Windows, Claude Code uses the `PowerShell`
+  tool for shell commands. A `Bash(...)` permission rule does NOT match a `PowerShell(...)` call,
+  meaning `ask` list guards (e.g. `git push` prompts) were silently bypassed on Windows when only
+  `Bash` variants were present. `shared/settings-template.json` now ships both `Bash(...)` and
+  `PowerShell(...)` variants for every `allow` and `ask` entry. `.claude/settings.json` updated
+  to match.
+- **`/foundation` Point 8b** — New check "Settings dual-tool coverage" added to the `/foundation`
+  skill. On Windows: verifies that `.claude/settings.json` has `PowerShell(...)` mirrors for every
+  `ask` entry. Output format updated to include `Point 8b` row (N/A on macOS/Linux).
+- **FRAMEWORK.md §11 rule 7** — Push-safety note extended to explain the `Bash`/`PowerShell` split
+  and that `shared/settings-template.json` is the authoritative source for both variants.
+- **README.md "Adapt to your tech stack"** — Added Windows/PowerShell callout with example showing
+  that every `ask` rule needs both a `Bash(...)` and a `PowerShell(...)` entry.
+
+### Why this matters
+> The `ask` list is the safety net that forces a confirmation prompt before destructive operations
+> (force push, tag delete, push to main). If a guard only has `Bash(git push origin main*)` and
+> Claude runs the push via PowerShell on Windows, the rule never matches — the push goes through
+> silently. This was a silent failure that only surfaces when you notice a push happened without
+> a prompt.
+
+---
+
 ## [2.5.0] — 2026-06-16
 
 ### Added

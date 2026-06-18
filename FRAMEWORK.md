@@ -719,6 +719,12 @@ Team: at least one review from someone who didn't write it. Reviewer runs the 10
    the rule never matches and the push goes through without asking.
    Always issue push as its own separate command.
 
+   **Windows / PowerShell note:** On Windows, Claude Code uses the `PowerShell` tool for shell
+   commands, not `Bash`. A `Bash(git push*)` rule does NOT match a `PowerShell(...)` tool call.
+   Every `ask` (and `allow`) entry needs a `PowerShell(...)` mirror alongside the `Bash(...)` entry
+   or the guard is silently bypassed on Windows. `shared/settings-template.json` ships both variants
+   for every rule — always copy from the template, never add Bash-only rules.
+
 ### Conflict resolution
 
 If two PRs touch the same file, the second author rebases on top of the first after the first merges. Don't merge-resolve blindly.

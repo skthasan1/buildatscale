@@ -10,6 +10,15 @@
       "Bash(git remote -v*)",
       "Bash(git remote --verbose*)",
 
+      "PowerShell(git status*)",
+      "PowerShell(git diff*)",
+      "PowerShell(git log*)",
+      "PowerShell(git show*)",
+      "PowerShell(git stash list*)",
+      "PowerShell(git tag*)",
+      "PowerShell(git remote -v*)",
+      "PowerShell(git remote --verbose*)",
+
       "Bash(pnpm lint*)",
       "Bash(pnpm run lint*)",
       "Bash(pnpm typecheck*)",
@@ -17,6 +26,14 @@
       "Bash(pnpm exec tsc*)",
       "Bash(pnpm --filter * exec tsc*)",
       "Bash(npx tsc*)",
+
+      "PowerShell(pnpm lint*)",
+      "PowerShell(pnpm run lint*)",
+      "PowerShell(pnpm typecheck*)",
+      "PowerShell(pnpm run typecheck*)",
+      "PowerShell(pnpm exec tsc*)",
+      "PowerShell(pnpm --filter * exec tsc*)",
+      "PowerShell(npx tsc*)",
 
       "Bash(pnpm test*)",
       "Bash(pnpm run test*)",
@@ -26,9 +43,21 @@
       "Bash(pnpm --filter * exec vitest*)",
       "Bash(pnpm --filter * exec playwright*)",
 
+      "PowerShell(pnpm test*)",
+      "PowerShell(pnpm run test*)",
+      "PowerShell(pnpm exec vitest*)",
+      "PowerShell(pnpm exec playwright*)",
+      "PowerShell(pnpm --filter * test*)",
+      "PowerShell(pnpm --filter * exec vitest*)",
+      "PowerShell(pnpm --filter * exec playwright*)",
+
       "Bash(pnpm build*)",
       "Bash(pnpm run build*)",
       "Bash(pnpm --filter * build*)",
+
+      "PowerShell(pnpm build*)",
+      "PowerShell(pnpm run build*)",
+      "PowerShell(pnpm --filter * build*)",
 
       "Bash(ls*)",
       "Bash(find*)",
@@ -52,9 +81,29 @@
       "Bash(dirname*)",
       "Bash(basename*)",
 
+      "PowerShell(ls*)",
+      "PowerShell(dir*)",
+      "PowerShell(Get-ChildItem*)",
+      "PowerShell(cat*)",
+      "PowerShell(Get-Content*)",
+      "PowerShell(Select-Object*)",
+      "PowerShell(Where-Object*)",
+      "PowerShell(Measure-Object*)",
+      "PowerShell(Write-Output*)",
+      "PowerShell(Get-Location*)",
+      "PowerShell(Split-Path*)",
+      "PowerShell(Get-Command*)",
+      "PowerShell(node --version*)",
+      "PowerShell(node -e*)",
+      "PowerShell(node -p*)",
+
       "Bash(pnpm list*)",
       "Bash(pnpm why*)",
       "Bash(pnpm outdated*)",
+
+      "PowerShell(pnpm list*)",
+      "PowerShell(pnpm why*)",
+      "PowerShell(pnpm outdated*)",
 
       "Bash(curl -s http://localhost:*)",
       "Bash(curl --silent http://localhost:*)"
@@ -65,7 +114,14 @@
       "Bash(git push --force*)",
       "Bash(git push --force-with-lease*)",
       "Bash(git tag -d*)",
-      "Bash(git push origin :refs/tags/*)"
+      "Bash(git push origin :refs/tags/*)",
+
+      "PowerShell(git push origin main*)",
+      "PowerShell(git push origin dev*)",
+      "PowerShell(git push --force*)",
+      "PowerShell(git push --force-with-lease*)",
+      "PowerShell(git tag -d*)",
+      "PowerShell(git push origin :refs/tags/*)"
     ]
   }
 }
