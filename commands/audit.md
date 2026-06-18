@@ -63,6 +63,13 @@ Read the code for:
 - No SQL injection vector (parameterized queries)?
 - No XSS vector (unescaped output)?
 
+Security hardening patterns (full detail in `shared/FRAMEWORK.md` §18):
+- **Timing-safe comparison** — any shared secret, webhook token, or API key compared with `===`? Use `timingSafeEqual` instead (§18.1).
+- **Fail-loud env var** — any `process.env.X` accessed inside a handler without a startup-time `requireEnv()` guard? Silent `undefined` = wide-open gate (§18.2).
+- **Webhook endpoints** — verifying shared secret (timing-safe) AND sender allowlist? Or using the provider SDK's HMAC verification for third-party webhooks (Stripe, GitHub, Slack)? (§18.3)
+- **Long-lived credentials in DB** — stored encrypted (AES-256-GCM)? Never plaintext? (§18.4)
+- **AI products only** — user-provided content passed to an LLM without `<untrusted-data>` wrapping and system prompt hardening? (§18.5)
+
 ### Point 6 — Design alignment
 
 Does the implementation match the approved design from `/design`?

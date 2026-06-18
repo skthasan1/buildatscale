@@ -10,6 +10,40 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.5.2] — 2026-06-18
+
+### Added
+- **§18 Security hardening** — new FRAMEWORK.md section with four universal production security
+  patterns distilled from real project security audits:
+  - **§18.1 Timing-safe comparison** — use `timingSafeEqual` (not `===`) for all shared secret,
+    webhook token, and API key comparisons. `===` leaks timing information that enables offline
+    brute-force recovery.
+  - **§18.2 Fail-loud env var pattern** — call `requireEnv()` at module load time (not inside
+    handlers). Missing config crashes the process at startup instead of silently degrading and
+    leaving guarded operations wide open.
+  - **§18.3 Webhook double-guard** — validate shared secret (timing-safe) AND sender IP allowlist.
+    Either alone is bypassable. For third-party webhooks (Stripe, GitHub, Slack): use the provider
+    SDK's HMAC-SHA256 signature verification instead.
+  - **§18.4 Long-lived credential storage** — encrypt OAuth refresh tokens and third-party API
+    credentials at rest with AES-256-GCM before writing to DB. A DB breach should not immediately
+    compromise all connected services.
+  - **§18.5 Prompt injection guard (AI products)** — wrap all user-provided content in
+    `<untrusted-data>` tags and harden the system prompt. Without explicit tagging, users can embed
+    instructions in their content and the model may follow them.
+- **Audit Point 5 extended** — `/audit` Point 5 (Vulnerabilities) now includes the five §18
+  checklist items so every feature audit automatically checks the new patterns.
+
+### Why this matters
+> These four patterns (five for AI products) each protect against a different silent failure mode:
+> timing oracle, env var wide-open gate, replay/IP attacks, plaintext DB breach, and prompt
+> injection. The IP-allowlist trade-off for cloud webhooks (Vercel dynamic IPs, Stripe/GitHub IPs)
+> is documented: for third-party webhooks, rely on their SDK signature verification and skip the
+> IP check. The patterns are stack-agnostic and written in TypeScript for Node.js projects —
+> the crypto primitives (`timingSafeEqual`, AES-256-GCM, `requireEnv`) have direct equivalents
+> in every major server-side language.
+
+---
+
 ## [2.5.1] — 2026-06-18
 
 ### Fixed
