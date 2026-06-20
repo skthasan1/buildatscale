@@ -1,4 +1,8 @@
 {
+  "env": {
+    "_MAX_THINKING_TOKENS_note": "Cap extended thinking per agent call. 8000 is right for most tasks; raise only for complex multi-file work.",
+    "MAX_THINKING_TOKENS": "8000"
+  },
   "permissions": {
     "allow": [
       "Bash(git status*)",

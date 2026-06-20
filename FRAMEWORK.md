@@ -28,6 +28,9 @@
 15. How to brief Claude
 16. Locked decisions register
 17. Common gotchas
+18. Security hardening
+19. Bug tracking
+20. Performance & cost
 
 ---
 
@@ -1581,6 +1584,61 @@ Before marking any release done, read `docs/bug-report.md`:
 
 ---
 
-**Last updated: 2026-06-18** — distilled from real production development experience. Every rule here exists because something broke when it wasn't followed.
+## 20. Performance & cost
+
+Five rules for keeping Claude Code fast and affordable across sessions, subagents, and workflow scripts. Each one has a real cost if ignored — wasted tokens, cache misses, or reasoning budgets spent on work that didn't need them.
+
+### §20.1 .claudeignore — scope what Claude reads
+
+Every project needs a `.claudeignore` at the repo root. Without it, Claude reads `node_modules/`, `dist/`, lockfiles, and binaries — none of which it can act on, all of which burn context. Use `shared/claudeignore-template` as a starting point. The framework ships a template; `/scaffold` creates the file automatically; `/foundation` checks it exists as part of its infrastructure checklist. Add project-specific entries as needed (generated client files, compiled contracts, coverage reports).
+
+### §20.2 Prompt cache stability — don't break your cache
+
+Claude Code maintains a prompt cache with a 5-minute TTL. Every `/clear` resets it. Every reshuffle of what is loaded (CLAUDE.md, memory files, MCP context) invalidates it. Rules:
+
+- Do not `/clear` mid-task unless you genuinely need a clean slate. Clearing resets the cache anchor and the next several tool calls are slower and more expensive.
+- Use `/compact` when the session grows long. Compact summarises the conversation without clearing the cache anchor — you keep the speed benefit while freeing context window.
+- Keep CLAUDE.md and memory files stable within a session. Reloading them with different content invalidates the cache just as effectively as a `/clear`.
+
+Cache hits show up as lower latency on the first response of a tool chain. If responses feel sluggish, the first thing to check is whether a recent `/clear` or context reshuffle reset the anchor.
+
+### §20.3 Effort calibration — match effort to task complexity
+
+The `/effort` flag controls the extended thinking token budget. The default is appropriate for most tasks. Overuse of `max` or `ultracode` burns tokens on reasoning that adds nothing for simple changes.
+
+| Task type | Effort level |
+|---|---|
+| Rename a variable, fix a typo, update a doc | `/effort low` or default |
+| Add a feature, write tests, review a PR | `/effort high` (default) |
+| Multi-file architecture, security audit, complex refactor | `/effort max` |
+| Full multi-agent orchestration across many files | `ultracode` keyword |
+
+Cap: if your project's CLAUDE.md or env sets `MAX_THINKING_TOKENS`, use 8 000 as a reasonable ceiling for single-agent tasks. 30 000 reasoning tokens for a rename is waste — it costs real money and adds latency without improving the output.
+
+### §20.4 Model selection — right model for the task
+
+Claude Code defaults to the session model. For subagents and workflow stages, pick by task type:
+
+| Task type | Model |
+|---|---|
+| Research, search, grep, read-only exploration | Haiku (fast, cheap) |
+| Feature build, test write, standard code review | Sonnet (balanced) |
+| Architecture decisions, adversarial verification, complex judgment | Opus |
+
+In workflow scripts, set `opts.model` only when you are confident a different tier fits the task. Omit it otherwise — agents inherit the session model, which is almost always correct. Defaulting every subagent to Opus doubles or triples cost without improving results on straightforward tasks.
+
+### §20.5 Plan mode — review before execute
+
+For changes that touch many files or carry high blast radius, switch to plan mode (`/plan` or set `defaultMode: "plan"` in settings) before running `/build`. Claude presents the full change set for review before writing a single file. Useful for:
+
+- Refactors that span multiple packages
+- Database migrations with downstream schema consumers
+- Any session where you want a second look before disk changes
+
+Plan mode does not add cost — the planning tokens are a tiny fraction of the implementation tokens it can save by catching a wrong approach before execution starts. Make it the default for any session where the impact analysis (§7) flags more than three affected files or a schema migration.
+
+---
+
+**Last updated: 2026-06-20** — distilled from real production development experience. Every rule here exists because something broke when it wasn't followed.
 
 *Starting fresh: copy FRAMEWORK.md + PLAYBOOK.md to repo root, run Session 0 checklist, follow 7-step pipeline. Existing codebase: start with Phase 0x — Retrofit in PLAYBOOK.md.*

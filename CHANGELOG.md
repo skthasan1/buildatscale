@@ -10,6 +10,41 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.5.5] — 2026-06-20
+
+### Added
+- **`.claudeignore` support** — `shared/claudeignore-template` added; `.claudeignore` created in
+  Vybev root (excludes `node_modules/`, build artefacts, `dist/`, `coverage/`, `.next/`,
+  `apps/desktop/out/`, `packages/db/generated/`, large binary dirs, and secrets files); `/foundation`
+  Point 9 updated with a `.claudeignore` check so every new project includes one from the start.
+- **§20 Performance & cost** — new FRAMEWORK.md section with five subsections:
+  - **§20.1 `.claudeignore`** — what to exclude (build output, generated files, large binaries,
+    secrets), why it matters (context window, latency, cost), and the claudeignore-template as the
+    canonical starting point.
+  - **§20.2 Cache stability** — keep system prompts / CLAUDE.md headers stable; append-only edits
+    preserve cache hits; restructuring the top of CLAUDE.md busts the cache for every message.
+  - **§20.3 Effort calibration** — match `/audit` effort level to task risk (low for doc fixes,
+    medium for standard features, high for security or data-path changes); avoid over-running
+    expensive searches on trivial patches.
+  - **§20.4 Model selection** — use Haiku 3.5 for high-volume background tasks (worker pre-screening,
+    digest generation, batch summarisation); reserve Sonnet / Opus for reasoning-heavy or
+    user-facing flows.
+  - **§20.5 Plan mode** — run `claude --plan` before large refactors or multi-file changes; plan
+    costs a fraction of execution and surfaces blast radius before any file is touched.
+- **`settings-template.json` `MAX_THINKING_TOKENS` env var** — added with an inline note explaining
+  that raising this above 10 000 enables extended thinking on Sonnet 3.7+ but increases cost;
+  recommended to leave unset (uses model default) unless a reasoning-heavy flow needs it.
+
+### Why this matters
+> Context window bloat is the single biggest avoidable cost driver in agentic Claude Code sessions.
+> A repo with `node_modules/`, `.next/`, and `packages/db/generated/` included in context sends
+> hundreds of thousands of tokens of irrelevant content on every tool call. The `.claudeignore`
+> template gives projects a correct starting point in under a minute. Pairing that with §20's
+> cache-stability and effort-calibration guidance means projects keep the Claude Code bill
+> proportional to the actual work being done — not to the size of the repo's build artefacts.
+
+---
+
 ## [2.5.4] — 2026-06-20
 
 ### Fixed

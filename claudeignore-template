@@ -1,0 +1,81 @@
+# .claudeignore — template for VYBEV and similar TypeScript monorepos
+# Copy this file to the project root as .claudeignore to suppress files
+# Claude Code should never need to read: build artifacts, lock files,
+# secrets, binaries, and generated output. Keeping these out of context
+# reduces noise and prevents accidental secret exposure.
+#
+# Scope: pnpm workspaces + Next.js + Electron + Hardhat/Solidity + Prisma + Cloudflare R2
+
+# ── Dependencies ──────────────────────────────────────────────────────────────
+**/node_modules/
+
+# ── Lock files ────────────────────────────────────────────────────────────────
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# ── Build output (generic) ────────────────────────────────────────────────────
+**/dist/
+**/.next/
+**/out/
+**/build/
+
+# ── Hardhat / Solidity ────────────────────────────────────────────────────────
+contracts/artifacts/
+contracts/cache/
+contracts/typechain-types/
+
+# ── Prisma ────────────────────────────────────────────────────────────────────
+# Keep schema.prisma readable; suppress generated SQL migration files
+packages/db/prisma/migrations/**/*.sql
+
+# ── Secrets / environment ─────────────────────────────────────────────────────
+.env
+.env.*
+**/.env
+**/.env.*
+
+# ── Electron build output ─────────────────────────────────────────────────────
+apps/desktop/dist/
+apps/desktop/release/
+
+# ── Binary / media assets ─────────────────────────────────────────────────────
+*.exe
+*.dmg
+*.zip
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.gif
+*.mp4
+*.woff
+*.woff2
+*.ttf
+*.otf
+*.ico
+
+# ── Log files ─────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ── OS-generated files ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE / editor ──────────────────────────────────────────────────────────────
+# Keep .vscode/extensions.json (recommended extensions are useful context)
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+.idea/
+
+# ── Test output ───────────────────────────────────────────────────────────────
+coverage/
+**/coverage/
+playwright-report/
+test-results/

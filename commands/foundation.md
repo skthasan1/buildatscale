@@ -50,6 +50,24 @@ Check that `.gitignore` covers:
 
 Run: `git status --short` — if any of the above categories appear as untracked files, `.gitignore` is incomplete.
 
+### Point 2b — `.claudeignore`
+
+Does a `.claudeignore` exist at the repo root? Without it, Claude reads `node_modules/`,
+`dist/`, lockfiles, and binaries on every context load — burning tokens that add no value
+and can cause context-window overflows on large repos.
+
+Check:
+- `.claudeignore` exists at repo root and is committed
+- It excludes at minimum: `node_modules/`, build output dirs, lockfiles (`pnpm-lock.yaml`,
+  `package-lock.json`, `yarn.lock`), binary/media files (`*.png`, `*.jpg`, `*.woff2`, etc.),
+  coverage dirs, and generated files
+
+Use `shared/claudeignore-template` as the starting point if one doesn't exist yet.
+
+Run: `cat .claudeignore` — confirm the file is present and non-empty.
+
+FAIL if missing.
+
 ### Point 3 — Secrets guard
 
 Check that the CI pipeline has a step that fails if any `.env` file or known secret
@@ -172,15 +190,16 @@ uncommitted. Pushed to the remote branch.
 ```
 Foundation check — [date]
 ─────────────────────────────────────────────────────
-Point 1  .env.example:       PASS / FAIL — [reason]
-Point 2  .gitignore:         PASS / FAIL — [reason]
-Point 3  Secrets guard:      PASS / FAIL — [reason]
-Point 4  CI pipeline:        PASS / FAIL — [reason]
-Point 5  Dev quickstart:     PASS / FAIL — [reason]
-Point 6  Test baseline:      PASS / FAIL — [reason]
-Point 7  Package wiring:     PASS / FAIL — [reason]
-Point 8  Docs baseline:      PASS / FAIL — [reason]
-Point 9  Push:               PASS / FAIL — [reason]
+Point 1   .env.example:       PASS / FAIL — [reason]
+Point 2   .gitignore:         PASS / FAIL — [reason]
+Point 2b  .claudeignore:      PASS / FAIL — [reason]
+Point 3   Secrets guard:      PASS / FAIL — [reason]
+Point 4   CI pipeline:        PASS / FAIL — [reason]
+Point 5   Dev quickstart:     PASS / FAIL — [reason]
+Point 6   Test baseline:      PASS / FAIL — [reason]
+Point 7   Package wiring:     PASS / FAIL — [reason]
+Point 8   Docs baseline:      PASS / FAIL — [reason]
+Point 9   Push:               PASS / FAIL — [reason]
 
 Items to fix:
 - [list of FAILs with specific files/actions]
