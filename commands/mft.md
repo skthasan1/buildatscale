@@ -3,6 +3,18 @@
 Run the MFT scripts against a live running instance of the app.
 Claude executes every scenario step by step and reports results.
 
+## When this applies
+
+This skill covers **two situations** — both follow the same log-first process:
+
+1. **Formal invocation** — `/mft` is called; run the scenario table in `docs/manual-test.md`
+2. **Conversational testing feedback** — the user says "this is broken", "I see X instead of Y",
+   or "here are some fixes I found" during a testing session
+
+Treat conversational feedback **exactly like a FAIL finding** — do NOT convert it directly into
+a code change. Log it in `docs/bug-report.md` first, then ask whether to fix now or hand off.
+Silent fixes are the failure mode this rule prevents.
+
 ## Input
 
 The scenarios to run come from `docs/manual-test.md`.
@@ -66,9 +78,13 @@ Summary: [N] passed, [M] failed
 ### 5. Next steps
 
 - All PASS → proceed to `/audit` (Step 6 re-audit) or report results if running independently
-- Any FAIL → the bug is already logged (Step 2). Now decide:
-  - **Fix now (same session):** create a plan row, fix the issue, merge the commit, update the bug
-    entry (status: `fixed`, add commit reference), re-run the scenario, confirm PASS, close the bug.
+- Any FAIL → the bug is already logged (Step 2). **Ask:**
+
+  > "Do you want to fix this now, or log it for someone else to pick up?"
+
+  Based on the answer:
+  - **Fix now:** create a plan row, fix the issue, merge the commit, update the bug entry
+    (status: `fixed`, add commit reference), re-run the scenario, confirm PASS, close the bug.
     `Added by` and `Resolved by` being the same person is fine — the trail is still there.
   - **Hand off:** leave status `open`. The next developer to pick it up creates the plan row and
     follows the same fix → re-run → close cycle.

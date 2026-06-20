@@ -10,6 +10,32 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.5.4] — 2026-06-20
+
+### Fixed
+- **Conversational testing feedback now triggers bug-log process** — `/mft` was only applying
+  the log-first rule when formally invoked. If a user gave testing feedback conversationally
+  ("this is broken", "I see X instead of Y"), the model treated it as a direct change request
+  and fixed silently. Now both modes — formal `/mft` and conversational feedback — follow the
+  same process: treat as FAIL findings, log first, ask "fix now or hand off?", never fix silently.
+- **Explicit "fix now or hand off?" prompt in `/mft` Step 5** — previously described both
+  options without prompting the user to choose. Step 5 now includes an explicit ask so the
+  decision is surfaced rather than assumed.
+- **`/mft` "When this applies" section added** — documents the two trigger modes (formal vs
+  conversational) at the top of the skill so the rule is visible before the first scenario runs.
+- **FRAMEWORK.md §6 Step 5** updated with the conversational feedback rule.
+- **CLAUDE.md "Standing testing rule"** section added — session-level instruction so the rule
+  applies in every conversation, not only when `/mft` is formally invoked.
+
+### Why this matters
+> The bug-log rule was framework-correct but conversation-blind. A user saying "here are some
+> fixes I found" during a testing session reads as a change request, not an MFT FAIL — and the
+> model was treating it that way. The fix is to make the rule sticky at the session level
+> (CLAUDE.md standing rule) and explicit at the skill level (`/mft` "When this applies"), so
+> conversational testing feedback cannot bypass the log.
+
+---
+
 ## [2.5.3] — 2026-06-18
 
 ### Added

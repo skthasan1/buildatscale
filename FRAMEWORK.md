@@ -422,6 +422,8 @@ Run the MFT scripts you wrote in Step 2 against a real running instance. This me
 
 **Claude runs the MFT scripts** — not describes them, not defers them to the user. Open the app, follow each script, report findings. If the app can't be started in this environment (CI, headless, sandbox, missing credentials), say so explicitly, list which scenarios need human verification, and mark them in `docs/manual-test.md` as `[ ] requires human — [reason]`.
 
+**Conversational testing feedback counts.** If the user says "this is broken" or "I see X instead of Y" during any session — not just a formal `/mft` run — treat it as a FAIL finding. Log it in `docs/bug-report.md` first, then ask "fix now or hand off?" Do not convert testing feedback directly into a code change.
+
 ### Step 6 — Re-audit
 
 After fixing anything from Step 5, re-run the audit. Fixes often introduce new issues. **Only proceed to Step 7 when clean.** Re-run the test suite to confirm nothing regressed.
