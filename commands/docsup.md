@@ -53,6 +53,8 @@ MFT scenario format — use a table per feature section:
 Status values: `⬜` = not yet tested, `✅` = passed, `❌` = failed (file a fix before closing the session).
 Update **Date tested** and all statuses when running `/mft`.
 
+**Multi-surface check:** before writing scenarios, ask — does this feature exist on multiple surfaces (web app, desktop client, mobile, API endpoint, bot/webhook handler)? If yes, write at least one scenario per surface. A feature tested only on web but also exposed via desktop IPC, a webhook, or a CLI is half-tested.
+
 Write at least:
 - The happy path (feature works as designed)
 - One error/edge case

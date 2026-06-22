@@ -25,7 +25,7 @@ Spawn a search agent if the codebase is large:
 | # | Question |
 |---|---|
 | 1 | **Data layer** — Schema migration needed? Which tables/rows change? Rollback plan? |
-| 2 | **Shared contracts** — Which interfaces/types/API shapes change? List every consumer. |
+| 2 | **Shared contracts** — Which interfaces/types/API shapes change? List every consumer. Also: are there other entry points (routes, bot handlers, CLIs, desktop IPC handlers, mobile screens) that call the same shared functions? List them — they're in scope even if no types changed. |
 | 3 | **State flow** — What state (local, server, cache, queue) is read or written? Optimistic updates at risk? |
 | 4 | **Cross-layer sync** — Which other components, services, or workers read the same data? |
 | 5 | **Test surface** — Which tests cover the changed path? Run `grep` for the function/type name now. |
@@ -38,7 +38,7 @@ Spawn a search agent if the codebase is large:
 Impact analysis for: <change description>
 ──────────────────────────────────────────
 Data layer:        affected / not affected — <reason>
-Shared contracts:  affected / not affected — <what changes + list of consumers>
+Shared contracts:  affected / not affected — <what changes + list of consumers + other entry points calling same functions>
 State flow:        affected / not affected — <what state, what could de-sync>
 Cross-layer sync:  affected / not affected — <which layers>
 Test surface:      <list tests to update, or "none">

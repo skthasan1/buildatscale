@@ -54,6 +54,8 @@ Read the code for:
 - Race conditions in shared state
 - Wrong comparison operator (`=` vs `==` vs `===`, `<` vs `<=`)
 - Swapped arguments
+- **Inconsistent call sites** — if a shared helper was introduced or changed, do ALL call sites use it? Check for sibling routes or handlers left with a hardcoded fallback while others call the real function.
+- **(Web/React)** List keys are globally unique within the parent render — not just locally unique within a single inner `.map()` call. Keys derived from indices or regex positions collide when the same `.map()` runs multiple times in an outer loop.
 
 ### Point 5 — Vulnerabilities
 

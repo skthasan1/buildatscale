@@ -39,6 +39,8 @@ If the app cannot be started in this environment (e.g. missing credentials, CI c
 
 ### 2. Execute each MFT scenario
 
+**Multi-surface check:** before running, verify the scenario list covers every surface this feature touches (web app, desktop client, API endpoint, bot/webhook, mobile screen). If a surface has no scenario, add one before continuing — missing a surface is missing coverage.
+
 For each scenario in `docs/manual-test.md` that was written or updated this session:
 
 1. Read the scenario: precondition → steps → expected result

@@ -10,6 +10,20 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.5.6] — 2026-06-21
+
+### Added
+- **Mid-session scope change protocol** (`pipeline.md` + `FRAMEWORK.md` §6) — when the user requests a design change after Step 2, the pipeline now mandates a pause and targeted `/impact` before writing a single line. Minimal blast radius → update docs inline and continue; non-trivial blast radius → new plan-row, separate chunk. The rule: a scope change mid-build is a new Step 0, not a free implementation.
+- **`/impact` Q2 — parallel entry points sub-question** — Question 2 now explicitly asks: are there other entry points (routes, bot handlers, CLIs, desktop IPC handlers, mobile screens) that call the same shared functions? Previously only asked about type/API shape consumers; parallel surfaces that share functions but don't change types were invisible to the impact check.
+- **`/audit` Point 4 — inconsistent call sites check** — when a shared helper is introduced or changed, the audit now checks that ALL call sites use it. Catches the case where sibling routes/handlers are left with hardcoded fallbacks while others call the real function.
+- **`/audit` Point 4 — React key uniqueness check (web projects)** — keys must be globally unique within the parent render, not just locally unique within a single inner `.map()` call. Keys from indices or regex positions collide when the same map runs in an outer loop.
+- **Multi-surface coverage prompt** (`docsup.md` + `mft.md`) — before writing MFT scenarios (`/docsup` Step 3) and before running them (`/mft` Step 2), both skills now ask: "Does this feature exist on multiple surfaces?" At least one scenario required per surface. A feature tested only on web but also exposed via desktop IPC, a webhook, or a CLI is half-tested.
+
+### Why this matters
+> All five gaps share the same root cause: the framework checked the code being changed but not the wider surface it operated on. Parallel entry points, outer-loop key collisions, and multi-surface features are all invisible to a check that only looks at the diff. These additions extend the blast radius and test coverage checks outward — from "what changed" to "what else touches this."
+
+---
+
 ## [2.5.5] — 2026-06-20
 
 ### Added

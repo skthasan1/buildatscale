@@ -127,6 +127,19 @@ Run `/wrap`:
 
 ---
 
+## Mid-session scope change
+
+If the user requests a design or requirement change **after Step 2** — any point during Steps 3–6:
+
+1. **Stop** — do not implement the new scope immediately.
+2. **Run a targeted `/impact`** scoped to the change only. Takes two minutes. Answer: new files? New contracts? New entry points or surfaces? New tests?
+3. **Minimal blast radius** (same files, same contracts, no new surfaces): update docs and MFT scenarios inline, continue on the current branch.
+4. **Non-trivial blast radius** (new files, new API contracts, new entry points): file a new plan-row, tackle as a separate chunk. The current chunk closes as-is.
+
+**The rule:** a scope change mid-build is a new Step 0, not a free implementation. Two minutes of targeted impact analysis now prevents a mid-Step-5 discovery that breaks the re-audit.
+
+---
+
 ## Usage
 
 ```
