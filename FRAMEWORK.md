@@ -597,6 +597,64 @@ For Electron apps:
 - Use an `APP_TEST_TOKEN` env var to bypass auth in test mode — the main process reads it and treats it as the stored session token. Far simpler than mocking the full auth flow. Guard with `if (!app.isPackaged)` so it never works in production builds.
 - **Watch out:** VS Code sets `ELECTRON_RUN_AS_NODE=1` in the terminal environment. Spread via `...process.env` and Electron will silently run as Node.js — no `BrowserWindow`, no `app.whenReady()`, all Electron APIs `undefined`. Fix in fixture env: `ELECTRON_RUN_AS_NODE: undefined`.
 
+### Web app E2E auth bypass
+
+The correct pattern is to **mint a real token using the auth framework's own functions** in `globalSetup`, write it to a `storageState.json` file, and have Playwright load it as the browser's cookie/storage state. No server-side bypass code.
+
+```typescript
+// global-setup.ts — NextAuth / Auth.js example (pattern applies to any JWT-based auth)
+import { encode } from 'next-auth/jwt';
+import fs from 'fs/promises';
+
+const token = await encode({
+  token: { sub: testUser.id, email: testUser.email, role: 'ADMIN' },
+  secret: process.env.NEXTAUTH_SECRET!,
+});
+
+await fs.writeFile('playwright/.auth/user.json', JSON.stringify({
+  cookies: [{ name: 'next-auth.session-token', value: token, domain: 'localhost', path: '/' }],
+  origins: [],
+}));
+```
+
+```typescript
+// playwright.config.ts
+use: { storageState: 'playwright/.auth/user.json' }
+```
+
+**Why env-var injection fails for server-side auth:** modern web frameworks (Next.js 16 + Turbopack, Nuxt, SvelteKit) don't reliably inject `webServer.env` into server-side code. More importantly, framework-level middleware (NextAuth, Auth.js App Router, Supabase SSR) runs **before** your route handler — a `if (process.env.TEST_MODE) skip auth` guard in the route never executes because a 307 redirect happens upstream. Use `storageState` instead: it's a real token the middleware accepts without any server-side changes.
+
+The same pattern applies to other auth frameworks — use their own token-creation APIs:
+- **Supabase Auth**: `createClient(url, serviceKey).auth.admin.createSession(userId)` → write access_token as cookie
+- **Custom JWT**: sign with the same secret + algorithm your middleware verifies
+- **Session-based**: use a test database seed to create a session row, write the session ID cookie
+
+### AI / LLM mocking in E2E
+
+Use `page.route()` to intercept the AI provider's API at the network layer. No server-side changes needed.
+
+```typescript
+// In the test — intercepts any provider's HTTP endpoint
+await page.route('**/v1/messages', route => {         // Anthropic
+  route.fulfill({ status: 200, contentType: 'application/json',
+    body: JSON.stringify({ content: [{ type: 'text', text: 'Mocked AI response' }] }) });
+});
+
+await page.route('**/v1/chat/completions', route => { // OpenAI
+  route.fulfill({ status: 200, contentType: 'application/json',
+    body: JSON.stringify({ choices: [{ message: { content: 'Mocked response' } }] }) });
+});
+```
+
+**Never add server-side AI mock guards** (`if (process.env.AI_MOCK) return fixture`). They create production risk, are unreliable under bundlers that tree-shake env reads, and require deploying test-only code paths. Network intercept is the correct boundary: the test controls the wire, the server code is unchanged.
+
+### E2E gotchas
+
+- **Strict-mode locators** — use `{ exact: true }` whenever the asserted text can appear in multiple elements (e.g. a chat bot reply that echoes the user's own message — both bubbles match). Without exact matching, Playwright picks the first match and the assertion passes on the wrong element.
+- **Env var injection unreliability** — don't rely on `webServer.env` in `playwright.config.ts` to reach server-side code in Next.js 16 + Turbopack, Vite SSR, or similar modern bundlers. Use `storageState` for auth and `page.route()` for external services instead.
+- **Dotenv comment parsing** — when reading `.env` files in `globalSetup`, strip inline comments (`KEY=val # comment`). Many dotenv parsers include the ` # comment` as part of the value, silently breaking connection strings and tokens.
+- **Framework middleware fires before route handlers** — for middleware-level auth (NextAuth App Router, Supabase SSR, custom Next.js middleware), any 307 redirect happens before your route handler code runs. Server-side bypass guards in the handler are unreachable.
+
 ---
 
 ## 10. Plan tracking system

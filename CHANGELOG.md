@@ -10,6 +10,22 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.5.7] — 2026-06-22
+
+### Added
+- **`§9` Web app E2E auth bypass** — `globalSetup` JWT/cookie pattern as the standard approach: mint a real token using the auth framework's own functions, write to `storageState.json`, load via `playwright.config.ts`. Includes concrete NextAuth/Auth.js example + equivalents for Supabase Auth and custom JWT. Explains why env-var injection and server-side bypass guards fail (middleware fires before route handlers; modern bundlers don't reliably inject `webServer.env`).
+- **`§9` AI / LLM mocking in E2E** — `page.route()` network intercept as the correct boundary. Includes intercept snippets for Anthropic and OpenAI endpoints. Documents why server-side `if (AI_MOCK)` guards are wrong: production risk, bundler tree-shaking unreliability, test-only code paths in prod.
+- **`§9` E2E gotchas bullet list** — four generalizable traps distilled from real project failures:
+  - Strict-mode locators — use `{ exact: true }` when asserted text can appear in multiple elements
+  - Env var injection unreliability — don't trust `webServer.env` for server-side code in modern bundlers
+  - Dotenv comment parsing — strip inline comments (`KEY=val # comment`) in globalSetup
+  - Framework middleware fires before route handlers — server-side bypass guards in handlers are unreachable
+
+### Why this matters
+> The Electron `APP_TEST_TOKEN` pattern already in §9 works cleanly because the desktop app owns its own auth layer. Web apps are harder: auth middleware runs at the framework level, before any application code. The `storageState` + real-token approach is the correct web equivalent — it authenticates at the HTTP boundary the framework actually checks, without any server-side test scaffolding. The `page.route()` AI mock is the same idea applied to external APIs.
+
+---
+
 ## [2.5.6] — 2026-06-21
 
 ### Added
