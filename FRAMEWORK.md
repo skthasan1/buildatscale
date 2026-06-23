@@ -798,6 +798,17 @@ Team: at least one review from someone who didn't write it. Reviewer runs the 10
    Every `ask` (and `allow`) entry needs a `PowerShell(...)` mirror alongside the `Bash(...)` entry
    or the guard is silently bypassed on Windows. `shared/settings-template.json` ships both variants
    for every rule — always copy from the template, never add Bash-only rules.
+8. **`Co-Authored-By` trailers are banned** — some deployment platforms (e.g. Vercel) check every
+   listed commit author, including `Co-Authored-By` trailers, against the project's allowed
+   contributors and **block the deployment** if any author is unrecognised (e.g.
+   `noreply@anthropic.com`). Never add `Co-Authored-By` trailers to commits in repos connected to
+   such platforms. Add the following to the project's `CLAUDE.md` under a **Commit policy** heading:
+
+   ```
+   ## Commit policy
+   Do not add Co-Authored-By trailers — this repo is connected to a deployment platform that blocks
+   deployments from unrecognised commit authors (including noreply@anthropic.com).
+   ```
 
 ### Conflict resolution
 
