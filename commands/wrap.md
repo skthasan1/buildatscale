@@ -53,9 +53,9 @@ Stage changed files. Commit with a message in Conventional Commits format:
 type(scope): short description
 
 Types: feat | fix | chore | docs | refactor | test | perf
-
-Co-Authored-By: Claude [model] <noreply@anthropic.com>
 ```
+Do NOT add a `Co-Authored-By` trailer — deployment platforms may block commits from
+unrecognised authors (see CLAUDE.md Commit policy).
 
 **Then push as a separate command** — never chain `git push` with `&&` after the commit.
 The `ask` permission rule only fires when `git push` is the start of the command:
@@ -72,7 +72,13 @@ Push to `dev`. Never leave uncommitted changes at end of session.
 
 ### 5. Open PR if shipping to production
 
-If changes are ready for production, open a PR from `dev` → `main`.  
+**Gate: all MFT scenarios must be ✅ before opening the PR.**
+Check `docs/manual-test.md` for any scenarios marked ⬜ (pending credentials, environment, or deferred).
+- If any ⬜ remain: push to `dev` (done in Step 4), but **do not open the PR**. Note the blocker
+  in the wrap confirmation message. The PR opens in a follow-up session after those scenarios pass.
+- If all scenarios are ✅ or explicitly filed as a known deferral with a plan-row: proceed.
+
+Open a PR from `dev` → `main`.
 **Never merge directly to `main`** — the PR gives a Vercel preview URL to verify first.
 
 ```bash
