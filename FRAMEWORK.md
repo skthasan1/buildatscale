@@ -358,6 +358,9 @@ Every **feature** flows through these eight steps. For infrastructure sessions (
 | New project | Starting from scratch | `/scaffold` → (auto-calls `/foundation`) → `/wrap` |
 | Infrastructure | CI, env vars, monorepo wiring, docs setup | `/foundation` → `/wrap` |
 | Feature work | Any plan-row — code, tests, API | Full 8-step pipeline (ends with `/wrap`) |
+| Sprint kick-off | Starting a new sprint | `/sprint-plan N` → first `/pipeline` chunk |
+| Sprint health check | Mid-sprint progress review | `/sprint-status` |
+| Sprint close | End of sprint | `/sprint-retro N` |
 | Upgrade | New framework version | `git pull` → `/upgrade` → `/audit` → `/wrap` |
 
 A "chunk" is one plan-row — small enough to ship in one session, large enough to be meaningful.
@@ -686,18 +689,25 @@ The exact letters don't matter — consistency does. Pick a scheme on day one an
 ### Plan-row format
 
 ```
-[ID] [status] | [assigned] | [title] | [optional notes / branch]
+[ID] [status] | [assigned] | [title] | [AC(s)] | [optional notes / branch]
 ```
+
+The `AC(s)` column links each row to the acceptance criteria it satisfies (from the
+sprint file). Use the AC IDs defined in `docs/sprints/sprint-N.md`. If a row doesn't
+map to any sprint AC (e.g. a tech-debt task), use `—`.
 
 Example rows:
 
 ```
-A-01 ✅ done    | alice | User signup flow        | Privy + DB upsert
-A-05 🔧 in progress | bob | User profile endpoint | branch: feature/A-05-user-profile
-A-06 ⏳ planned | —     | Profile avatar upload  | depends on B-12
-B-12 🔧 in progress | alice | Upload pipeline     | branch: feature/B-12-upload
-K-03 🛑 blocked | —     | Rate limit middleware  | waiting on infra decision
+A-01 ✅ done    | alice | User signup flow        | AC-1       | Privy + DB upsert
+A-05 🔧 in progress | bob | User profile endpoint | AC-1, AC-4 | branch: feature/A-05-user-profile
+A-06 ⏳ planned | —     | Profile avatar upload  | AC-2       | depends on B-12
+B-12 🔧 in progress | alice | Upload pipeline     | —          | branch: feature/B-12-upload
+K-03 🛑 blocked | —     | Rate limit middleware  | AC-7       | waiting on infra decision
 ```
+
+The AC column makes it impossible to ship all plan-rows and still miss an acceptance
+criterion — if an AC has no rows mapped, `/sprint-plan` flags it as a gap before work begins.
 
 ### Status values
 

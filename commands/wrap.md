@@ -20,6 +20,18 @@ In `docs/project-log.md`, find the in-progress plan-row and mark it:
 If the chunk isn't fully done (session ended mid-chunk), leave it 🔧 in progress
 and add a note: "Stopped at: [what's done]. Next: [what remains]."
 
+**AC sync** — after marking the row ✅, check whether this completes the last
+plan-row for any acceptance criterion in the current sprint file
+(`docs/sprints/sprint-N.md`):
+
+1. Find every AC whose `Plan-Row(s)` column includes this row's ID.
+2. For each such AC, check if all its other mapped rows are also ✅ done.
+3. If yes → mark that AC `✅` in the AC → Plan-Row Map table in the sprint file.
+4. Update the Sprint Metrics `Plan-rows` actual count in the sprint file.
+
+This keeps the sprint file current without a separate manual step — sprint health
+is always accurate, not just at retro time.
+
 ### 2. Update CLAUDE.md
 
 Make these changes to CLAUDE.md in order:

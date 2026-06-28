@@ -10,6 +10,25 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.6.0] — 2026-06-28
+
+### Added
+- **`/sprint-plan` command** (`commands/sprint-plan.md`) — sprint kick-off gate: verifies prerequisites are ✅ before opening a sprint, maps acceptance criteria to plan-rows, identifies parallelizable day-1 work and the critical path, records target completion date, and prints a "Sprint N is open" declaration. Prevents the failure mode of discovering mid-sprint that a prerequisite was blocking six other rows.
+- **`/sprint-status` command** (`commands/sprint-status.md`) — mid-sprint health check: shows % plan-rows done, AC coverage (✅ covered / 🔧 partial / ⏳ not started / ❌ no plan-row), blocked rows with dependency chain, stale rows (in progress >3 days without commits), and test count vs sprint target. Designed to fit in one terminal screen — the standup replace for solo/small-team work.
+- **`/sprint-retro` command** (`commands/sprint-retro.md`) — sprint close-out: estimated vs actual metrics, carry-over decisions (drop / Sprint N+1 / backlog), final AC coverage verdict, three retro questions (slowed us / do differently / non-obvious win), CLAUDE.md session note generator, and Sprint N+1 setup with carry-overs noted.
+- **Sprint template** (`templates/sprint-template.md`) — canonical structure for `docs/sprints/sprint-N.md`: goal, prerequisites table, acceptance criteria, AC→Plan-Row map, dependency graph, plan-rows table with AC column, sprint metrics, retrospective notes, carry-overs. Used by `/sprint-plan` when the sprint file doesn't exist.
+- **Session type map** updated in `§2` — three new rows: "Sprint kick-off", "Sprint health check", "Sprint close".
+
+### Changed
+- **Plan-row format** (Section 10) — added `AC(s)` column after `title`. Links each chunk to the acceptance criteria it satisfies. Use `—` for non-sprint rows. Explicit gap detection: if an AC has no mapped rows, `/sprint-plan` flags it before work begins.
+- **`/pipeline` Step 0** — sprint gate added before impact assessment: (1) verify plan-row exists, (2) confirm chunk belongs to the open sprint, (3) check for upstream blockers. Surfaces blocked chunks before any code is written.
+- **`/wrap` Step 1** — AC sync added after marking plan-row ✅: checks if this completes the last row for any AC, marks that AC ✅ in the sprint file, and updates the Sprint Metrics row count. Sprint health stays current without a separate manual step.
+
+### Why this matters
+> The 8-step pipeline has per-chunk rigour. The gap was at sprint level — no formalized kick-off gate, no AC→row linkage, no mid-sprint health check, no structured retro. The result: starting sprints with unresolved blockers, shipping all plan-rows but missing an AC, and having no velocity data at sprint close. These three commands and two enhancements close that gap without adding ceremony to per-chunk work.
+
+---
+
 ## [2.5.7] — 2026-06-22
 
 ### Added

@@ -53,6 +53,31 @@ Then execute each step in order. After each step, print:
 
 ---
 
+## Sprint gate (before Step 0)
+
+Before starting impact analysis, verify three things:
+
+1. **Plan-row exists** — does this chunk have an ID in `docs/project-log.md`?
+   If not, create a row now (status `🔧 in progress`, assigned to the current developer).
+   Do not proceed with anonymous work — untracked chunks become invisible to sprint metrics.
+
+2. **Sprint is open** — is there a current sprint with `🔧 in progress` or `⏳ planned`
+   rows? If yes, does this chunk belong to it? If the chunk is outside the open sprint
+   scope, flag it: "This row is not in the current sprint — proceed anyway, or file it
+   for Sprint N+1?"
+
+3. **No blocker** — check the plan-row's dependencies. If any upstream row is
+   `🛑 blocked` or `⏳ planned` (not yet done):
+
+   ```
+   ❌ Cannot start [row ID] — depends on [blocker row] which is not done.
+   Resolve the blocker first, or confirm you're choosing to start anyway (document the risk).
+   ```
+
+If all three checks pass, continue to Step 0.
+
+---
+
 ## Step 0 — Impact assessment
 
 Run `/impact` for the described change. Do not summarize or abbreviate — run the full
