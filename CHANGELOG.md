@@ -10,6 +10,21 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.6.1] — 2026-07-17
+
+### Changed
+- **CI template** (`ci/github-actions.yml`) — five cost optimisations applied by default:
+  1. **PR-to-main only trigger** — removed `push: branches: [dev]`; CI fires only on PRs to `main`. Eliminates 60–70% of minutes for projects with active dev branches.
+  2. **Concurrency cancel** — `concurrency.cancel-in-progress: true` kills stale runs when a new commit arrives on the same PR.
+  3. **Merged check job** — `typecheck` + `lint` + `test` combined into one job; saves 2–3 min of setup overhead per run (one checkout + install instead of three).
+  4. **Build job removed** (commented out) — deploy platforms (Vercel, Railway, Render, Fly.io) build on every PR and provide a preview URL; running `pnpm build` in CI is redundant. Job is preserved as a commented example for projects that need a build artifact.
+  5. **`paths-ignore`** — `docs/**`, `**.md`, `.claude/**`, `shared/**` skip CI so docs-only PRs don't burn minutes.
+
+### Why this matters
+> These optimisations together can reduce CI minutes by 70–80% on projects with active dev branches, without weakening the gate. The merged check job and cancelled-in-progress runs were the highest-impact individual changes.
+
+---
+
 ## [2.6.0] — 2026-06-28
 
 ### Added

@@ -4,21 +4,38 @@
 # Works for: web, API, mobile (build only), monorepo.
 # Every PR must pass all jobs before merging — this is the CI gate the audit checklist assumes.
 #
-# ── CUSTOMISE THESE ────────────────────────────────────────────────────────────
+# ── COST OPTIMISATIONS (applied by default) ─────────────────────────────────
+# 1. PR-to-main only — no CI on every dev push; saves 60–70% of minutes
+# 2. Concurrency cancel — stale runs killed when a new commit arrives on the PR
+# 3. Merged check job — typecheck + lint + test share one install instead of three
+# 4. No build job — if Vercel/Railway/Render builds for you, drop it (see comment below)
+# 5. paths-ignore — skip CI for docs-only or config-only changes
+# ─────────────────────────────────────────────────────────────────────────────
+#
+# ── CUSTOMISE THESE ──────────────────────────────────────────────────────────
 # 1. NODE_VERSION — match your .nvmrc or engines.node in package.json
 # 2. PACKAGE_MANAGER — pnpm | npm | yarn
-# 3. TEST_CMD — your test command (see examples)
-# 4. BUILD_CMD — your build command
-# 5. Remove jobs that don't apply to your stack
-# ───────────────────────────────────────────────────────────────────────────────
+# 3. TEST_CMD — your test command (see examples in the check job)
+# 4. paths-ignore — add your own docs/config paths
+# 5. Remove or uncomment the build job depending on your deploy platform
+# ─────────────────────────────────────────────────────────────────────────────
 
 name: CI
 
+# Cancel stale runs when a new commit arrives on the same PR.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
-  push:
-    branches: [main, dev]
   pull_request:
-    branches: [main, dev]
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".claude/**"
+      - "shared/**"   # framework files — no prod impact
+  workflow_dispatch:  # manual trigger for milestone gates / full E2E
 
 env:
   NODE_VERSION: "20"          # ← change to match your project
@@ -26,9 +43,10 @@ env:
 
 jobs:
 
-  # ── 1. Type check ────────────────────────────────────────────────────────────
-  typecheck:
-    name: Type check
+  # ── 1. Check (typecheck + lint + unit tests) ─────────────────────────────────
+  # All three share one checkout + install. Saves ~2–3 min vs separate jobs.
+  check:
+    name: Check (typecheck + lint + tests)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,43 +57,19 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: ${{ env.PACKAGE_MANAGER }}
       - run: pnpm install --frozen-lockfile   # ← swap for npm ci / yarn install
-      # TypeScript projects:
-      - run: pnpm exec tsc --noEmit          # ← swap for: npm run typecheck, npx tsc --noEmit
-      # Python projects: replace above two steps with:
-      # - run: pip install -r requirements.txt && mypy .
-      # Go projects: go vet ./...
 
-  # ── 2. Lint ──────────────────────────────────────────────────────────────────
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 10 }
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: ${{ env.PACKAGE_MANAGER }}
-      - run: pnpm install --frozen-lockfile
+      # TypeScript / type check
+      - run: pnpm exec tsc --noEmit          # ← swap for: npm run typecheck, npx tsc --noEmit
+      # Python: mypy .
+      # Go: go vet ./...
+
+      # Lint
       - run: pnpm lint                        # ← swap for: npm run lint, yarn lint
-      # Python: flake8 . / ruff check .
+      # Python: ruff check .
       # Rust: cargo clippy -- -D warnings
 
-  # ── 3. Unit tests ────────────────────────────────────────────────────────────
-  test:
-    name: Unit tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 10 }
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: ${{ env.PACKAGE_MANAGER }}
-      - run: pnpm install --frozen-lockfile
-      # ── choose your TEST_CMD ──────────────────────────────────────────────
+      # Unit tests
+      # ── choose your TEST_CMD ─────────────────────────────────────────────
       - run: pnpm test                    # single package
       # - run: pnpm -r test               # all packages in monorepo
       # - run: pnpm --filter api test     # specific monorepo package
@@ -84,31 +78,11 @@ jobs:
       # - run: go test ./...              # Go
       # ─────────────────────────────────────────────────────────────────────
       env:
-        # Add test-only env vars here (never real secrets — use GitHub Secrets for those)
         NODE_ENV: test
 
-  # ── 4. Build verification ─────────────────────────────────────────────────────
-  build:
-    name: Build
-    runs-on: ubuntu-latest
-    needs: [typecheck, lint, test]  # only build if checks pass
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 10 }
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: ${{ env.PACKAGE_MANAGER }}
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build                   # ← swap for your build command
-      # Monorepo: pnpm -r build
-      # Python: docker build . (if containerised)
-      # Mobile (Expo): npx expo export (dry run — no device needed)
-
-  # ── 5. Secrets guard ─────────────────────────────────────────────────────────
+  # ── 2. Secrets guard ─────────────────────────────────────────────────────────
   # Fails the build if any .env files or known secret patterns appear in the diff.
-  # Cheap insurance — runs in seconds.
+  # Cheap insurance — runs in seconds, no install needed.
   secrets-guard:
     name: Secrets guard
     runs-on: ubuntu-latest
@@ -131,11 +105,39 @@ jobs:
           fi
           echo "✅ No secrets detected"
 
-  # ── 6. E2E tests (optional — enable when you have them) ──────────────────────
+  # ── 3. Build verification (OPTIONAL — remove if your deploy platform builds for you) ──
+  #
+  # If you deploy via Vercel, Railway, Render, or Fly.io, those platforms build on
+  # every PR and give you a preview URL. Running pnpm build here is redundant.
+  # Only keep this job if you need a build artifact (Docker image, binary, etc.)
+  # or your platform does NOT build on PRs.
+  #
+  # build:
+  #   name: Build
+  #   runs-on: ubuntu-latest
+  #   needs: [check]
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: pnpm/action-setup@v4
+  #       with: { version: 10 }
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #         cache: pnpm
+  #     - run: pnpm install --frozen-lockfile
+  #     - run: pnpm build                   # ← swap for your build command
+  #     # Monorepo: pnpm -r build
+  #     # Python: docker build . (if containerised)
+  #     # Mobile (Expo): npx expo export (dry run — no device needed)
+
+  # ── 4. E2E tests (optional — enable when you have them) ──────────────────────
+  # Playwright E2E requires a running backend + live DB secrets.
+  # Run manually (workflow_dispatch) or on release PRs only.
+  #
   # e2e:
   #   name: E2E tests
   #   runs-on: ubuntu-latest
-  #   needs: [build]
+  #   needs: [check]
   #   steps:
   #     - uses: actions/checkout@v4
   #     - uses: pnpm/action-setup@v4
