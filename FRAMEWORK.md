@@ -535,6 +535,7 @@ Run after Step 3 (first pass) and again after Step 5 fixes (re-audit). Also run 
 1. **Code review** — read the diff end-to-end as if you didn't write it. Anything confusing? Anything you'd flag in someone else's PR?
 2. **Docs updated** — every doc that references the changed surface is current. API ref, data model, manual test, architecture diagram if applicable.
 3. **Edge cases** — null inputs, empty arrays, expired tokens, concurrent calls, network failure, partial writes. Each covered by a test or explicitly documented as "not in scope."
+   - **Sibling-function check:** if the bug's root cause lives in a function with a structurally similar sibling (mirrored extractors, parallel web/bot route handlers, paired encode/decode functions), the audit is not complete until the sibling has been checked *and live-tested* for the identical shape. A code comment that says "the sibling has the same theoretical risk" does not satisfy this point — it must be actively verified. (Kairo field data: BUG-225/226/227 — the same extraction bug appeared in three consecutive sessions because each fix verified the reported function in isolation, not the sibling flagged as "theoretical risk" in the bug report.)
 4. **Bugs** — read the code looking for:
    - Off-by-one errors, race conditions, missing `await`, wrong comparison operator, swapped arguments.
    - **Inconsistent call sites:** if a function's signature changed, search for every call site — not just the obvious ones. Check test mocks and IPC/proxy layers that may carry a stale shape.
@@ -591,6 +592,18 @@ If counts in CLAUDE.md, `testing-strategy.md`, and reality disagree, fix it duri
 | client-sdk | 10–50 | Cross-platform shared logic |
 
 Not every project has every layer. A pure API project has contract + API + maybe E2E. A web-only project has web + E2E web. Add layers as the product grows.
+
+### MFT scenario requirements for matching / extraction / classification fixes
+
+Any fix that touches search, fuzzy-matching, text extraction, or LLM classification must include **both** of the following scenario types in `docs/manual-test.md`, in addition to the standard happy-path scenario. These are not optional extras — a single-item, single-call happy-path check structurally cannot catch the bugs these scenarios are designed to surface.
+
+**Adjacent-similarity scenario** — set up 2+ deliberately similar real items (similar wording, similar title, same category) and verify the fix picks the *correct* one, not just that it picks one. A test that works when only one candidate exists will silently pass even if the fix is wrong.
+
+**Sequence scenario** — set up a real sequence of 2+ dependent actions (action 2 run *after* action 1's side effect has changed the state), for any bug involving state that changes between steps. Example: complete reminder A, then verify complete-reminder for reminder B still resolves to B, not a stale pre-completion match. A single-message or single-call check cannot reproduce a bug that only exists in the interaction between two sequential writes.
+
+**"Verified" means downstream state, not function return value.** For these scenario types, the pass condition is confirmed via the real downstream state — a DB read, a UI list check, an API query for the resulting record. The function's isolated return value is a necessary but not sufficient check. Kairo convention: "confirmed via show reminders" or "confirmed via DB read" in the MFT result counts as verified; "extractor returned correct JSON" alone does not.
+
+**Repeat-mechanism escalation rule** — if a second bug sharing the identical root-cause mechanism (same extractor pattern, same matching logic, same flow) is found within the same session, stop and grep for every other site sharing that mechanism before continuing. Patch the cluster once, not one instance at a time as each is separately discovered by testing.
 
 ### E2E global setup rules
 

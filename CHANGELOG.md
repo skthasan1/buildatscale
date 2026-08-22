@@ -10,6 +10,16 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.7.1] — 2026-08-21
+
+### Changed
+- **§8 Audit Point 3 — Edge cases** (`FRAMEWORK.md`) — added sibling-function check: when a bug's root cause lives in a function with a structurally similar sibling (mirrored extractors, parallel route handlers), the audit is not satisfied until the sibling has been actively checked and live-tested — not just flagged as "theoretical risk." (Kairo: BUG-225/226/227, same extraction bug in three consecutive sessions.)
+- **§9 Three-layer testing** (`FRAMEWORK.md`) — added mandatory MFT scenario requirements for matching/extraction/classification fixes: (1) adjacent-similarity scenario (2+ similar items, correct one verified), (2) sequence scenario (action 2 after action 1's side effect), (3) "verified" defined as downstream state — DB read or UI check, not function return value alone, (4) repeat-mechanism escalation rule — second bug with identical mechanism triggers a full site sweep before continuing.
+- **`.claude/commands/audit.md`** — Point 3 extended with sibling-function check (mirrors §8).
+- **`.claude/commands/mft.md`** — verification standard for matching/extraction scenarios made explicit (downstream state required); repeat-mechanism escalation rule added to execution step.
+
+---
+
 ## [2.7.0] — 2026-08-21
 
 ### Added
