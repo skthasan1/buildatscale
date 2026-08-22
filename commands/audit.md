@@ -59,16 +59,19 @@ Read the code for:
 
 ### Point 5 — Vulnerabilities
 
+Baseline checks (every chunk):
 - Auth check present on every new protected route/endpoint?
 - Input validation on every field accepted from user/external input?
 - No secrets, tokens, or PII in log output?
-- No SQL injection vector (parameterized queries)?
+- No SQL injection vector (parameterized queries only — especially raw DB calls)?
 - No XSS vector (unescaped output)?
+- **IDOR guard** — for any procedure that fetches/writes a record by ID, is record ownership verified against the authenticated user (or an explicit admin bypass)?
+- **Security gate satisfied** — if `/impact` reported `Security surface: yes`, was `/security` run at Step 3.5 and were all Medium+ findings fixed?
 
-Security hardening patterns (full detail in `shared/FRAMEWORK.md` §18):
+Hardening patterns (full detail in `shared/FRAMEWORK.md` §18):
 - **Timing-safe comparison** — any shared secret, webhook token, or API key compared with `===`? Use `timingSafeEqual` instead (§18.1).
 - **Fail-loud env var** — any `process.env.X` accessed inside a handler without a startup-time `requireEnv()` guard? Silent `undefined` = wide-open gate (§18.2).
-- **Webhook endpoints** — verifying shared secret (timing-safe) AND sender allowlist? Or using the provider SDK's HMAC verification for third-party webhooks (Stripe, GitHub, Slack)? (§18.3)
+- **Webhook endpoints** — verifying shared secret (timing-safe) AND sender allowlist? Or using the provider SDK's HMAC verification for third-party webhooks? (§18.3)
 - **Long-lived credentials in DB** — stored encrypted (AES-256-GCM)? Never plaintext? (§18.4)
 - **AI products only** — user-provided content passed to an LLM without `<untrusted-data>` wrapping and system prompt hardening? (§18.5)
 

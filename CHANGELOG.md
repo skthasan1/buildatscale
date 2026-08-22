@@ -10,6 +10,23 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.8.0] — 2026-08-21
+
+### Added
+- **`/security` skill** (`shared/commands/security.md`, `.claude/commands/security.md`) — two-mode security review skill:
+  - **Targeted mode** (`/security <chunk-id>`) — called from the pipeline at Step 3.5 when `/impact` flags `Security surface: yes`. Sweeps the changed surface only: threat model, OWASP A01–A10 checklist, `pnpm audit`. Medium+ findings block the pipeline like an audit FAIL.
+  - **Full mode** (`/security`) — periodic full-surface sweep. Runs quarterly or pre-release. Covers threat model, OWASP sweep, privilege escalation matrix for all roles, data exposure check. Produces `docs/security-audit.md` with SEC-NNN findings (severity: Critical/High/Medium/Low/Info).
+
+### Changed
+- **Pipeline** (`shared/commands/pipeline.md`, `.claude/commands/pipeline.md`) — added **Step 3.5** (conditional security review) between Build and Audit. Triggered only when impact assessment reports `Security surface: yes`; skipped entirely otherwise.
+- **`/impact`** (`shared/commands/impact.md`, `.claude/commands/impact.md`) — added **8th question: Security surface**. Output block now includes a `Security surface: yes/no` row. Trigger criteria: new/modified auth guard; new public endpoint; payment flow; schema change to user/session/permission/invite tables; new PII or credential field; new external HTTP call; new file upload/download path; new admin capability.
+- **`/audit` Point 5** (`shared/commands/audit.md`, `.claude/commands/audit.md`) — extended with two new baseline checks: **IDOR guard** (ownership verified against authenticated user for every record-by-ID operation) and **security gate satisfied** (if impact flagged security-relevant, `/security` was run and Medium+ findings were fixed).
+- **`shared/FRAMEWORK.md` §18** — added security review cadence section: per-chunk (targeted, Step 3.5) vs. periodic (full, quarterly/pre-release). Explains the two-layer model and when each applies. References `shared/commands/security.md`.
+- **`shared/FRAMEWORK.md` §7** — impact block extended with 8th question (Security surface) and trigger criteria.
+- **`shared/FRAMEWORK.md` §6** — pipeline description extended with Step 3.5 (conditional security gate).
+
+---
+
 ## [2.7.1] — 2026-08-21
 
 ### Changed

@@ -20,7 +20,7 @@ The change to analyze comes from:
 Spawn a search agent if the codebase is large:
 > Explore agent: "Find all files that reference [changed symbol/schema/endpoint]. Report file paths and line numbers. Be thorough — check imports, type usages, test mocks, and API clients."
 
-**2. Answer all 7 questions.** For each question, be specific — name files and line numbers.
+**2. Answer all 8 questions.** For each question, be specific — name files and line numbers.
 
 | # | Question |
 |---|---|
@@ -31,6 +31,7 @@ Spawn a search agent if the codebase is large:
 | 5 | **Test surface** — Which tests cover the changed path? Run `grep` for the function/type name now. |
 | 6 | **Adjacent code risk** — What else lives in the same file or execution path? List it. |
 | 7 | **Deployment/infra** — Deploy sequence constraints? New env vars? Infrastructure changes? |
+| 8 | **Security surface** — Does this change touch a trust boundary? Answer yes/no, then list which apply: new or modified auth guard; new public endpoint; payment or payout flow; schema change to user/session/permission/invite tables; new PII or credential field; new external HTTP call (SSRF risk); new file upload or download path; new admin capability. A "yes" triggers `/security` as Step 3.5 in the pipeline. |
 
 **3. Output the standardized block:**
 

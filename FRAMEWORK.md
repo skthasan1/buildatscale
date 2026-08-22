@@ -421,6 +421,14 @@ Implement. Write auto-tests (unit + E2E stubs) alongside the code, not afterward
 
 **At the end of Step 3:** run the full test suite (`pnpm test` or equivalent) and verify it passes. A green suite is the signal Step 3 is complete — not "the code compiles."
 
+### Step 3.5 — Security review *(conditional)*
+
+**Run only when** Step 0 `/impact` reported `Security surface: yes`. Skip entirely otherwise — do not run this on every chunk.
+
+Run `/security <chunk-id>` (targeted mode). Work through the threat model and OWASP A01–A10 sweep for the changed surface only. Any finding at **Medium or above** blocks the pipeline — fix before Step 4. Low and Info findings are tracked as plan rows but do not block.
+
+See Section 18 and `shared/commands/security.md` for the full skill spec.
+
 ### Step 4 — Audit (first pass)
 
 Run the 10-point audit checklist (Section 8) on your own code. **This is not optional** — it is the gate between "coded" and "done." Point 9 requires you to paste the actual test output, not assert that tests "should pass."
@@ -520,7 +528,10 @@ Cross-layer sync:  affected / not affected — <which other layers read this dat
 Test surface:      <list of tests to update, or "none">
 Adjacent risk:     <list of other code in the same path, or "none">
 Deployment/infra:  affected / not affected — <migration, env vars, infra>
+Security surface:  yes / no — <which trust boundary(ies) affected; "Run /security at Step 3.5" if yes>
 ```
+
+**Security surface (8th question):** answer yes if the change touches any of: new or modified auth guard; new public endpoint (no auth); payment or payout flow; schema change to user/session/permission/invite tables; new PII or credential field stored; new external HTTP call (SSRF risk); new file upload or download path; new admin capability. A "yes" here triggers `/security` as a conditional Step 3.5 in the pipeline — a targeted OWASP sweep of the changed surface only.
 
 If you can't answer a question, that is a design gap — resolve it before writing code. "I don't know" is a valid finding that triggers investigation, not a reason to skip the question.
 
@@ -1446,7 +1457,19 @@ Pre-collected failure modes that recurred enough to be worth writing down.
 
 ## 18. Security hardening
 
-Four patterns that recur across every production product. Each one looks obvious in hindsight and costs real effort to retrofit — apply them from the start. See also audit Point 5, which checks for all four.
+### Security review cadence
+
+Security is checked at two cadences:
+
+1. **Per-chunk (targeted)** — the `/security` skill runs as Step 3.5 of the pipeline whenever `/impact` flags `Security surface: yes` (new auth surface, payment flow, new public endpoint, new PII field, new external HTTP call, new admin capability). Targeted mode sweeps the changed surface only against the OWASP Top 10. Any Medium+ finding blocks the pipeline like an audit FAIL. See `shared/commands/security.md` for the full skill spec.
+
+2. **Periodic (full surface)** — run `/security` (no args, full mode) quarterly or before any major public launch. Full mode sweeps the entire API surface, produces `docs/security-audit.md` with SEC-NNN findings, and includes a privilege escalation matrix for all roles. Run `pnpm audit --audit-level=high` as part of every full review.
+
+The per-chunk pass prevents new regressions as features ship. The periodic pass finds accumulated gaps across the full surface that no single-chunk review would catch.
+
+---
+
+Five hardening patterns that recur across every production product. Each one looks obvious in hindsight and costs real effort to retrofit — apply them from the start. See also audit Point 5, which checks for all five.
 
 ### 18.1 Timing-safe comparison
 

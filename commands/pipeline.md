@@ -117,6 +117,16 @@ Gate: test suite green.
 
 ---
 
+## Step 3.5 — Security review *(conditional)*
+
+**Run only if** Step 0 `/impact` reported `Security surface: yes`. Skip entirely if the security flag was `no` — do not run `/security` on every chunk.
+
+Run `/security <chunk-id>`. Work through the threat model and OWASP A01–A10 sweep for the changed surface only.
+
+Gate: any finding at **Medium or above** is treated as an audit FAIL — fix before Step 4. Low and Info findings are filed as plan rows and do not block.
+
+---
+
 ## Step 4 — Audit (first pass)
 
 Run `/audit`. Work through all 10 points. Point 9 requires pasting actual test output.
