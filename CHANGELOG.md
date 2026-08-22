@@ -10,6 +10,27 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.7.0] — 2026-08-21
+
+### Added
+- **§21 AI product patterns** (`FRAMEWORK.md`) — three production-validated patterns from Kairo field data:
+  1. **§21.1 LLM classifier/router** — allowlist + fail-loud default for classifier output; log unexpected labels for prompt tuning; use structured output (JSON Schema / tool call) instead of free-form string labels.
+  2. **§21.2 Fallback allowlist, not blocklist** — model the bounded set of permitted categories; anything not on the allowlist is blocked by default; the blocklist is an adjunct fast-path, never the primary gate.
+  3. **§21.3 Stale confirmation state** — confirmation-state write (`status = "APPROVED"`) must be the *last* operation after all side effects succeed; audit gate added for any endpoint that sets a terminal status field.
+- **§22 Live reproduction and dev tooling hygiene** (`FRAMEWORK.md`) — two rules:
+  1. **§22.1 Live reproduction before diagnosis** — write the minimal reproduction recipe and reproduce the failure in the running system before opening any source file; prevents fixing the wrong layer.
+  2. **§22.2 Dev tooling hygiene** — every script in `scripts/` carries a top-of-file contract (purpose, target environment, idempotency, teardown path); single-use scripts are deleted after their date; prod-destructive scripts require an explicit flag.
+
+### Changed
+- **§8 Audit Point 4 — Bugs** (`FRAMEWORK.md`) — extended with two new checklist items:
+  - **Optimistic confirmation-state** — is status set before or after the mutation succeeds? What happens on partial failure in a batch? Easy to reintroduce because new code copies the nearest pattern, not the correct one.
+  - **Union-extension exhaustiveness** — when a discriminated union gains a new value, every switch/if-else-if chain branching on it must be audited. A trailing bare `else` silently absorbs new values.
+- **§8 Audit intro** (`FRAMEWORK.md`) — added large-diff guidance: split the audit into two concurrent tracks (deterministic checks in foreground + adversarial read as a background subagent) for diffs touching 10+ files.
+- **§2 Bootstrap checklist — Test infrastructure** (`FRAMEWORK.md`) — added shared dev/prod DB hygiene item (Pattern 5): hard-delete teardown in tests, collision-proof nonsense tokens for "must not match" assertions.
+- **`.claude/commands/audit.md`** — Point 4 updated to match the extended §8 bullets (optimistic confirmation-state, union exhaustiveness).
+
+---
+
 ## [2.6.1] — 2026-07-17
 
 ### Changed

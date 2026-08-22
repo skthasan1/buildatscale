@@ -31,6 +31,8 @@
 18. Security hardening
 19. Bug tracking
 20. Performance & cost
+21. AI product patterns
+22. Live reproduction and dev tooling hygiene
 
 ---
 
@@ -118,6 +120,7 @@ The runner must be configured on Day 0. If it isn't, "run the tests" is a task t
 - [ ] `docs/testing-strategy.md` created with the pyramid structure and starting counts (0 per layer). Update counts each session — drift is invisible without a baseline
 - [ ] `docs/manual-test.md` created with the section headers for your feature areas (empty is fine; the structure forces you to write scenarios as you build)
 - [ ] Verify: run full test suite from scratch → 0 failures. Even with 0 tests, the runner must exit cleanly. A broken runner on Day 0 means 6 weeks of "I'll fix the test config later"
+- [ ] **Shared dev/prod DB hygiene** (if integration tests run against a real, shared database): (a) every test that creates a row cleans up via hard delete in teardown — not soft-delete, which leaks rows indefinitely and silently inflates result counts; (b) any "must not match" assertion uses a collision-proof nonsense token (e.g. `ZQXKV_TEST_NOMATCH`) not an ordinary word or phrase that real data could coincidentally contain months later. Kairo field data: two leaked 3 600+ row accumulations from soft-delete tests; two "returns empty" assertions started matching real prod data within weeks of launch.
 
 ### Sanity check
 
@@ -527,10 +530,16 @@ If you can't answer a question, that is a design gap — resolve it before writi
 
 Run after Step 3 (first pass) and again after Step 5 fixes (re-audit). Also run as part of the end-of-session close checklist after every session. Run before opening any PR.
 
+> **Large diffs (10+ files changed):** split the audit in two concurrent tracks. Foreground: run deterministic checks (typecheck, lint, test suite, cross-doc sync) while a background subagent does a deep adversarial read of the code changes. Synthesize both before calling the audit clean. The subagent's independent read has caught confirmed defects that a single linear read under time pressure missed (Kairo: BUG-230, a confirmation-state anti-pattern re-introduced in a new code path that copied an adjacent but incorrect block).
+
 1. **Code review** — read the diff end-to-end as if you didn't write it. Anything confusing? Anything you'd flag in someone else's PR?
 2. **Docs updated** — every doc that references the changed surface is current. API ref, data model, manual test, architecture diagram if applicable.
 3. **Edge cases** — null inputs, empty arrays, expired tokens, concurrent calls, network failure, partial writes. Each covered by a test or explicitly documented as "not in scope."
-4. **Bugs** — read the code looking for off-by-one, race conditions, missing await, wrong comparison operator, swapped arguments.
+4. **Bugs** — read the code looking for:
+   - Off-by-one errors, race conditions, missing `await`, wrong comparison operator, swapped arguments.
+   - **Inconsistent call sites:** if a function's signature changed, search for every call site — not just the obvious ones. Check test mocks and IPC/proxy layers that may carry a stale shape.
+   - **Optimistic confirmation-state:** for any pending/confirmation mutation — is `approved`/`resolved` set *before* the mutation is attempted rather than after it succeeds? If the mutation throws partway (especially in a batch), does the state still allow a clean retry — or does it silently strand the action as resolved with incomplete effect? This anti-pattern is easy to reintroduce: new code tends to copy the nearest existing pattern rather than the correct one written 40 lines away.
+   - **Union-extension exhaustiveness:** when a discriminated union gains a new value, grep every `switch`/`if-else-if` chain that branches on it and verify each arm accounts for it explicitly. A trailing bare `else`, written when the union had fewer members, silently absorbs the new value. Prefer an exhaustive switch with a compile-time `never`-assertion default over an implicit final-else wherever the union is likely to grow.
 5. **Vulnerabilities** — auth check present on every protected route, input validation on every accepted field, no secrets in logs, no SQL injection vector.
 6. **Design alignment** — implementation matches the design from Step 1. If it diverged, design was updated to match (with reasoning).
 7. **Dev instructions** — anything a future developer needs to know is in the code (inline comment) or the docs (linked from code). Not in your head.
@@ -1729,6 +1738,122 @@ Plan mode does not add cost — the planning tokens are a tiny fraction of the i
 
 ---
 
-**Last updated: 2026-06-20** — distilled from real production development experience. Every rule here exists because something broke when it wasn't followed.
+## 21. AI product patterns
+
+Six patterns distilled from production AI product development. Each arose from a real class of bugs, not theory. Apply during design and use as an audit checklist for any session that touches LLM-driven features.
+
+### §21.1 LLM classifier / router — never trust raw output as a control signal
+
+**Problem:** Classifier routes a user request to "action A" or "action B" based on model output. The model occasionally outputs an unrecognised string — `"none"`, `"uncertain"`, a truncated label, a valid label with trailing whitespace. Code reads the label and routes to the wrong action or silently falls through.
+
+**Pattern — allowlist + fail-loud default:**
+
+```typescript
+const VALID_ACTIONS = ["approve", "reject", "escalate"] as const;
+type Action = typeof VALID_ACTIONS[number];
+
+function parseClassifierOutput(raw: string): Action {
+  const trimmed = raw.trim().toLowerCase() as Action;
+  if (!VALID_ACTIONS.includes(trimmed)) {
+    // Log the unexpected output before throwing — these logs are gold for prompt tuning
+    logger.warn({ raw }, "Classifier returned unexpected label — treating as escalate");
+    return "escalate";          // safe fallback, not a crash
+  }
+  return trimmed;
+}
+```
+
+**Audit gate:** for every `if (label === "X") { ... } else { ... }` or `switch (label)` on classifier output — is the else/default a safe fallback or a silent assumption? Log unexpected values for prompt debugging.
+
+**Prompt side:** enumerate the exact valid labels in the system prompt. "Respond with one of: approve, reject, escalate" halves the noise vs "classify this request." For multi-label outputs, use structured output (JSON Schema / tool call) rather than asking the model to format its own string.
+
+### §21.2 Fallback allowlist, not blocklist
+
+**Problem:** content moderation / routing wants to "allow safe content, block problematic content." Team implements a blocklist of known-bad patterns. Works at launch. Fails 6 weeks later when a new pattern appears that wasn't on the list — it silently passes.
+
+**Pattern — allowlist at the category level:**
+
+Start with an allowlist of what you permit. Anything not on the allowlist is blocked by default. The blocklist is an adjunct for known-bad inputs that need a fast-path reject (e.g. exact hate phrases) — it never defines the default pass.
+
+```typescript
+const PERMITTED_CATEGORIES = new Set(["landscape", "portrait", "abstract", "architectural"]);
+
+function isPermitted(category: string): boolean {
+  // Default-deny: unknown categories are blocked, not allowed
+  return PERMITTED_CATEGORIES.has(category.toLowerCase());
+}
+```
+
+**Why this matters at scale:** the set of "bad" inputs is open-ended and grows over time. The set of "good" inputs for your specific product is bounded and defined by your own positioning. Model the bounded set, not the unbounded one.
+
+**For AI-generated categories:** if the LLM assigns the category, add "respond with one of: [list]" to the prompt AND validate against your allowlist after parsing. The model will occasionally invent a plausible-but-not-allowed category.
+
+### §21.3 Stale confirmation state
+
+**Problem:** a confirmation-state mutation (`status = "approved"`) is set optimistically — or set at the start of the operation rather than after it completes. If the operation throws partway through (batched DB writes, multi-step workflows), the state shows "approved" but the downstream effect never happened. Retry looks safe (state says done) but the record is actually half-complete.
+
+**Pattern — confirmation state is the last write:**
+
+```typescript
+// Wrong — state set before effect
+await db.update({ status: "APPROVED" });          // set first
+await sendEmail(user.email);                       // may throw
+await createDownloadPermission(photo.id);          // never reached
+
+// Right — state set after all effects
+await sendEmail(user.email);
+await createDownloadPermission(photo.id);
+await db.update({ status: "APPROVED" });          // set last — atomic with all effects
+```
+
+For multi-step effects with no native transaction, use the "saga" approach: each step is idempotent and has a rollback. Only set terminal state (`APPROVED`, `COMPLETED`) after all steps succeed. Log each intermediate step so a retry can skip completed work.
+
+**Audit gate:** in any endpoint that sets a terminal status field — is the `status` write the *last* operation, or the first? If it's first, what happens if a subsequent operation throws?
+
+---
+
+## 22. Live reproduction and dev tooling hygiene
+
+Two rules that shorten the time between "something is wrong" and "I understand exactly what's wrong." Both came from situations where the first 30–60 minutes of diagnosis were spent on the wrong artifact.
+
+### §22.1 Live reproduction before diagnosis
+
+**Rule:** before reading code to guess at the cause of a reported bug, reproduce the failure in the running system first. Even if the steps seem obvious. Even if you think you already know.
+
+**Why:** two failure modes that waste time without this rule:
+1. You read the code, form a theory, write a fix — then discover the fix doesn't change the observed behaviour because the bug is in a different layer (e.g. a cached response, a different code path, a config value you didn't know existed).
+2. The bug is intermittent. Your fix looks correct and passes in isolation. Without a reliable reproduction recipe, you can't confirm it's actually gone.
+
+**Protocol:**
+1. Write the minimal reproduction recipe (URL + action + expected + actual) before opening any source file.
+2. Reproduce it yourself. If you can't, find out why — the environment may differ from the reporter's.
+3. Once reproduced, add the recipe to `docs/bug-report.md` as the "Steps to reproduce" block.
+4. Now read the code with the reproduction active. You can confirm the fix works before writing the PR.
+
+This keeps diagnosis grounded in evidence rather than in mental models of the code that may be months out of date.
+
+### §22.2 Dev tooling hygiene — scripts that drift from their intended use
+
+**Problem:** a one-time migration script, a seeding helper, or a test trigger written in `scripts/` is reused as a general-purpose dev tool. Over time it accumulates special cases, loses its safety guards, or is run against the wrong environment because its name no longer accurately describes what it does.
+
+**Rules:**
+- Every script in `scripts/` has a comment at the top: what it does, what environment it targets, and whether it is safe to run multiple times (idempotent).
+- Scripts that are single-use (run once against prod, then never again) are marked `SINGLE-USE: delete after [date]` and removed after that date. They are not general-purpose tools.
+- Scripts that target prod always require an explicit `--prod` flag or an env var confirmation. A script that destructively modifies data should never run against prod by default.
+- Any script that creates rows (seeding, invites, migrations) includes a teardown path. A script with no teardown accumulates rows in dev indefinitely and eventually causes test interference.
+
+```typescript
+// scripts/trigger-digest.ts — top-of-file contract
+//
+// Purpose: manually trigger the weekly/daily email digest for a specific user.
+// Target environment: dev only — never run against prod (no --prod flag guard, not idempotent).
+// Idempotent: NO — running twice sends two emails.
+// Usage: pnpm --filter @myapp/worker exec tsx scripts/trigger-digest.ts <weekly|daily>
+// Safe to delete after: N/A (ongoing dev utility)
+```
+
+---
+
+**Last updated: 2026-08-21** — distilled from real production development experience. Every rule here exists because something broke when it wasn't followed.
 
 *Starting fresh: copy FRAMEWORK.md + PLAYBOOK.md to repo root, run Session 0 checklist, follow 7-step pipeline. Existing codebase: start with Phase 0x — Retrofit in PLAYBOOK.md.*
