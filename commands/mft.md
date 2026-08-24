@@ -101,3 +101,14 @@ as a user would, not to tick a box.
 
 The bug log (`docs/bug-report.md`) is append-only — never edit another person's lines.
 Add comments with your name and date; let the status and Resolved by fields tell the story.
+
+### Interaction-class bugs
+
+A category of defects that unit tests structurally cannot surface, regardless of coverage percentage. When running MFT, actively check for:
+
+- **Hover and focus affordances** — is the hover state visually distinct? Does keyboard focus reach the control? Does the focus ring render correctly?
+- **Event batching** — does a flush (views, analytics, form autosave) fire at the correct trigger point — on blur, on interval, on unmount? Or early, late, or not at all?
+- **DOM ownership** — does a portal render above the z-stacking? Does a focus trap correctly contain focus? Does a scroll container scroll when it should and clip when it shouldn't?
+- **Perceived timing** — does an animation complete before the next interaction is available? Do loading states appear and resolve at the right moment?
+
+If the project has no component-level test harness (React Testing Library, Vue Test Utils, etc.), these gaps can only be caught here. Mark interaction-class scenarios explicitly in `docs/manual-test.md` with `[INTERACTION: visual/timing check]` so reviewers know they require a human eye, not just a functional assertion.

@@ -50,3 +50,4 @@ If the user asks for a different option not listed, add it and re-present.
 - If there is genuinely only one viable option (e.g. a small bug fix), say so explicitly
   and explain why the alternatives aren't viable — don't fabricate fake options.
 - Edge cases and rollback plan belong in the design, not the implementation.
+- **Measure scale before choosing design.** When design viability depends on data scale — "will this be fast enough at 10,000 rows? 1,000,000 rows?" — seed the actual scale in a dev branch and measure before committing to the design. Don't reason about performance from architecture alone; query performance is an empirical question. A design that looks correct at 100 rows and breaks at 100,000 is a wrong design, discovered late. Distinguish size of input (rows) from size of rendered consequence (response payload, render time) — they scale differently.

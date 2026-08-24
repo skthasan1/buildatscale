@@ -46,6 +46,8 @@ For every input/output in the changed code:
 
 Each edge case is either covered by a test OR explicitly documented as "not in scope."
 
+**Counter-factual verification** — for any guard, gate, or refusal fix: after confirming the suite is green with the fix in place, remove the fix and verify the original failure reproduces. A test that passes with the fix present proves the fix doesn't break anything; only the counter-factual proves the fix actually does something. A passing test that was never run without the fix is not evidence of correctness.
+
 ### Point 4 — Bugs
 
 Read the code for:
@@ -111,6 +113,14 @@ Output:
 
 If any test is failing: fix it or document it as a known skip with a date and condition
 to un-skip. "Tests should be passing" is not a substitute for running them.
+
+**Assert coverage of the run — not just exit 0:**
+- **Package count** (monorepos): how many packages actually ran tests? Compare against the number of packages in `apps/` and `packages/`. A test command that runs 1-of-5 packages exits 0 while having run a fraction of the suite. If the count is unexpected, fix the test command before marking PASS.
+- **Skip count**: check for `test.skip` / `describe.skip` / `it.skip` in the output. Zero unexpected skips — a skip added because an env var is missing is a CI gap if that var is listed in `.env.example`. Document any deliberate skips with a date and un-skip condition.
+- **Count drift**: if the test count in Point 9 output disagrees with the number recorded in CLAUDE.md, that disagreement is the finding — resolve it before closing the audit.
+
+**Production artifact check** (when the change touches module boundaries, exports, build config, or framework-magic files — e.g. `next.config.*`, `vite.config.*`, `electron-builder.yml`, package `exports` field):
+- Building the artifact is necessary but not sufficient. The built artifact must be executed. Examples: for desktop, `electron ./dist/main.js` must load the renderer without crashing; for web, the built page must load and the first API call must succeed. Add this verification before marking Point 9 PASS on boundary-touching changes.
 
 ### Point 10 — Cross-doc sync
 

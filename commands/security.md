@@ -37,14 +37,26 @@ If the threat model surfaces no plausible attack paths: state that explicitly an
 
 ### 2. OWASP Top 10 sweep
 
+**Stack adaptation:** the terminology below uses tRPC/Next.js/Prisma names as defaults. Adapt to your project's actual access control model. To do this once rather than per-review, add a **Security surface map** section to `CLAUDE.md`:
+
+```
+## Security surface map
+Auth guards: publicProcedure / protectedProcedure / creatorProcedure / adminProcedure
+Roles: SUBSCRIBER | CREATOR | ADMIN | SUSPENDED
+Trust boundary: Privy session JWT — verified in isAuthed middleware
+Tenant model: single-tenant (no organizationId isolation needed)
+Dependency audit: pnpm audit --audit-level=high
+```
+
 For each item mark **PASS**, **FAIL**, or **N/A** with one-sentence evidence referencing a specific file:line or endpoint name. Do not mark PASS without evidence.
 
 #### A01 — Broken Access Control *(most common failure class)*
 
-- Every new/changed tRPC procedure: is the correct guard applied — `publicProcedure` / `protectedProcedure` / `creatorProcedure` / `adminProcedure`?
-- Any procedure that fetches a record by ID: does it verify the record belongs to `ctx.userId`, or that `ctx.role === ADMIN`? A creator fetching another creator's record is IDOR.
-- Any signed URL or presigned link generated: does the endpoint verify the photo/resource belongs to a user who is allowed to receive it?
+- Every new/changed procedure / route / handler: is the correct auth guard applied — `publicProcedure` / `protectedProcedure` / role-specific guard?
+- Any procedure that fetches a record by ID: does it verify the record belongs to the authenticated user, or that the caller has admin privilege? Fetching another user's record by ID enumeration is IDOR.
+- Any signed URL or presigned link generated: does the endpoint verify the resource belongs to a user who is permitted to receive it?
 - Can a lower-privileged role reach a higher-privileged procedure by calling it directly (role check in middleware vs. route guard)?
+- **Tenant isolation** — for any multi-tenant feature (organization, workspace, team): is the tenant ID (e.g. `organizationId`) in every WHERE clause that returns or mutates tenant-scoped data? The most common IDOR failure for B2B products is a check that verifies user ownership but not tenant membership — valid user, wrong tenant.
 
 #### A02 — Cryptographic Failures
 
@@ -55,12 +67,13 @@ For each item mark **PASS**, **FAIL**, or **N/A** with one-sentence evidence ref
 #### A03 — Injection
 
 - Any new Prisma raw query (`$queryRaw`, `$executeRaw`)? Template-literal parameterization only — never string concatenation.
-- Any user-provided content passed to an LLM without `<untrusted-data>` wrapping and system prompt hardening?
+- Any user-provided content passed to an LLM without `<untrusted-data>` wrapping and system prompt hardening? (See §18.5 in `shared/FRAMEWORK.md` — the delimiter must also be one the untrusted content cannot contain; a user who can emit `</untrusted-data>` can escape the data zone.)
 - Any new file path or URL constructed from user input (path traversal / open redirect)?
 
 #### A05 — Security Misconfiguration
 
-- Any new `process.env.X` accessed inside a handler without a startup-time `requireEnv()` guard?
+- Any `process.env.X` accessed inside a handler without a startup-time `requireEnv()` guard? *(Targeted mode: check new accesses. Full mode: audit all existing accesses — a 3-month-old unguarded access is just as exploitable as one added today.)*
+- Any `process.env.X ?? '<committed-literal>'` pattern? A hardcoded fallback is visible in source history — the app runs and appears healthy, but with a known-weak secret. No committed defaults on security-sensitive env vars.
 - CORS: any change to origin allowlist? Is it the minimum necessary set?
 - Storage: any new bucket or path? Is it private by default? Verify no public-read ACL.
 
@@ -78,7 +91,7 @@ Flag any new high or critical CVE introduced by packages added in this chunk.
 
 - Any new token type (e.g. `dsk_` desktop token)? Is expiry enforced? Can it be forged without the signing secret?
 - Any new endpoint without a rate limit? Could an attacker enumerate IDs or brute-force values?
-- Auth bypass in test mode (`APP_TEST_TOKEN`, `PLAYWRIGHT_TEST_SECRET`): guarded behind `!app.isPackaged` / `NODE_ENV !== "production"`?
+- Auth bypass in test mode: (a) **what makes the bypass unreachable in the deployed production environment** — and is this verified against the deployed config, not just the source code? (b) Is the bypass credential itself unforgeable (a high-entropy secret only accessible via your secrets manager), or is the environment toggle the only control? A toggle-only bypass (`NODE_ENV !== 'production'`) can be replicated by anyone who reads the source — the credential should be an additional, unforgeable factor.
 
 #### A08 — Software and Data Integrity
 
@@ -151,10 +164,13 @@ Write findings to `docs/security-audit.md`. Each finding:
 **Surface:** `photos.getFullUrl` — tRPC procedure
 **Finding:** Creator A can request a signed URL for Creator B's FULL photo by passing the photo ID directly.
 **Evidence:** `apps/api/src/trpc/routers/photos.ts:142` — no `photo.creatorId === ctx.userId` check
+**Reachability:** Verified — direct API call with wrong creatorId confirmed 200 response | Unverified — [reason: couldn't test in this environment]
 **Fix:** Add ownership check before generating the signed URL; ADMIN bypass allowed.
 **Status:** open | fixed | accepted-risk
 **Plan row:** SEC-NNN (link to project-log.md row when assigned)
 ```
+
+**Reachability rule:** unverified findings are capped at **Medium** severity. Do not file a Critical or High finding without reachability evidence — "I can see the missing check in the code" is evidence of a gap, but not that the gap is exploitable from outside. Unverified High-severity candidates should be marked Medium with a note to verify before escalating.
 
 Severity guide:
 - **Critical** — unauthenticated access to private data, RCE, payment bypass

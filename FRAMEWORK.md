@@ -616,6 +616,8 @@ Any fix that touches search, fuzzy-matching, text extraction, or LLM classificat
 
 **Repeat-mechanism escalation rule** — if a second bug sharing the identical root-cause mechanism (same extractor pattern, same matching logic, same flow) is found within the same session, stop and grep for every other site sharing that mechanism before continuing. Patch the cluster once, not one instance at a time as each is separately discovered by testing.
 
+**Known limits as passing tests** — when a feature makes a security, integrity, or correctness claim with a known limit (e.g. 'rate limited to 5/min', 'max edition supply of 10,000', 'creator cannot access another creator's records'), write a passing test that asserts that limit exists. A limit in a comment is an assumption; a limit as a test is a contract. The test must fail if the limit is removed or changed silently — that is its value as a regression guard.
+
 ### E2E global setup rules
 
 - **Seed data** — every E2E run starts with a known DB state. Implement a `global-setup` that resets/seeds in a single transaction.
@@ -852,6 +854,16 @@ Team: at least one review from someone who didn't write it. Reviewer runs the 10
    Do not add Co-Authored-By trailers — this repo is connected to a deployment platform that blocks
    deployments from unrecognised commit authors (including noreply@anthropic.com).
    ```
+9. **One worktree per agent** — when running multiple agents in parallel (workflow scripts, concurrent
+   Claude Code sessions), give each agent its own git worktree (`git worktree add`). Never `git add -A`
+   in an agent — always stage specific files and read `git diff --staged` before committing. A test
+   suite run in a tree that mixes two agents' uncommitted changes is not a trustworthy green signal;
+   stale tests are higher-severity than stale code because they produce false confidence.
+10. **A clean merge is not agreement.** Git resolves textual conflicts — it cannot verify that two
+    concurrent changes are semantically compatible. After any merge (including an automatically clean
+    one) where both sides touched the same concept — same function, same config key, same schema column,
+    same prompt template — review the merged result as new code written by a stranger. `git cherry-pick`
+    is not a merged-ness test: squash-merged commits appear as unmerged forever in `git log --cherry`.
 
 ### Conflict resolution
 
@@ -1443,6 +1455,7 @@ Pre-collected failure modes that recurred enough to be worth writing down.
 - **Debug features not gated on APP_DEBUG.** Audit your debug surface before every release.
 - **Logs containing secrets.** Never log full request bodies, full auth headers, or full database rows. Redact before logging.
 - **IPC handlers not covered by unit tests.** Every `ipcMain.handle` registration should have a test that confirms the channel exists and returns the expected type for the happy path and the null/error case.
+- **Control the search before trusting the result.** When a grep, audit, or trace returns suspiciously few (or zero) results for something you expect to exist, run a control first — search for something you *know* is present. Suspiciously uniform results (every result identical, zero matches where some are expected) mean the instrument is broken, not the codebase. Prefer loud-failure tools over silent-success ones: `grep -c` exits non-zero on no matches; `rg --count` similarly; both make "found nothing" distinguishable from "failed to search."
 
 ### Retrofitting an existing project
 
@@ -1509,6 +1522,8 @@ const CRON_SECRET    = requireEnv("CRON_SECRET");
 ```
 
 The `requireEnv` call at the top of the module (not inside a handler) forces a crash before the server starts — failing loudly in dev before it can fail silently in prod.
+
+**Committed fallback anti-pattern:** `process.env.X ?? '<literal>'` — a hardcoded fallback baked into source. The app starts, looks healthy, and runs with a known 'secret' visible in the repo history. This is strictly worse than a missing value: the missing value crashes loudly; the committed literal runs silently with a weak key that anyone can read from `git log`. No `?? '<literal>'` on security-sensitive env vars.
 
 **Exception:** optional env vars that enable a feature (e.g. `FEEDBACK_WEBHOOK_URL` — if unset, the feature is disabled, not broken). Document these in `.env.example` with an `# Optional:` prefix and explicit fallback description.
 
@@ -1599,7 +1614,19 @@ ${externalUserContent}
 
 Apply `<untrusted-data>` wrapping to: user-submitted text, scraped web content, file uploads, email bodies — anything that originates outside your own codebase. Do not wrap your own template strings.
 
+**Delimiter containment** — the `<untrusted-data>` tag must be one the untrusted content cannot itself contain. If a user can submit the literal string `</untrusted-data>`, a crafted payload can escape the data zone and inject into the trusted prompt region. Mitigations: instruct the model in the system prompt that any `</untrusted-data>` inside the data zone is literal text, not a tag; or use a per-request nonce as the delimiter (`<untrusted-{{nonce}}>`) that is unpredictable to the attacker.
+
 The wrapping significantly raises the bar but does not eliminate injection risk entirely. For high-stakes operations (sending emails on behalf of users, executing code, calling external APIs based on model output), add a human-in-the-loop confirmation step before acting on the model's output.
+
+### §18.6 Versioned signature prefix — downgrade oracle
+
+Any version or algorithm marker embedded in a signed token is attacker-controlled input. An attacker who controls the prefix can attempt a downgrade: forge a token claiming an earlier, weaker scheme.
+
+**Rules:**
+- Parse the version prefix first, then look up the algorithm for that version — never let the prefix select its own verifier function.
+- Gate on monotonic progression: once a credential is issued at version N, a request claiming version N-1 should be rejected outright, not re-verified under the weaker scheme.
+- **Distinguish 'unverifiable' from 'invalid'** in output and logs: an unrecognised version prefix means "I cannot verify this" (could be a future-version token, or an attacker probing supported versions); a recognised version with a bad MAC means "this is a forgery." Logging both as "invalid token" hides the signal that tells you whether you are under active attack.
+- **`alg:none` rediscovery** — the JWT `alg:none` attack disabled signature verification via an attacker-controlled algorithm field. This class of bug reappears every time a protocol adds multi-algorithm support. Any time you introduce a second signing algorithm, audit every code path that selects the verifier to confirm it cannot be steered by the token itself.
 
 ---
 
@@ -1846,6 +1873,16 @@ For multi-step effects with no native transaction, use the "saga" approach: each
 
 **Audit gate:** in any endpoint that sets a terminal status field — is the `status` write the *last* operation, or the first? If it's first, what happens if a subsequent operation throws?
 
+### §21.4 Prompt-spec defects are latent across model updates
+
+**Problem:** a prompt instruction that doesn't reproduce in every test run — the model "usually" does the right thing — is still a defect. Model behavior is a distribution, not a deterministic function. An instruction that works 95% of the time with the current model can fail 40% of the time after a model update, because the new weights distribute probability differently across the instruction space.
+
+**Pattern:**
+- Fix prompt-spec defects even when they don't reproduce consistently in manual testing. "Works most of the time" is not a passing specification — it is a defect with a low reproduction rate.
+- Treat prompt instructions as code: ambiguous instructions produce non-deterministic behavior. Explicit beats implicit. "Respond with exactly one of: approve | reject | escalate — no other values" beats "classify this request."
+- **Treat model version bumps as dependency upgrades.** Before deploying a new model version, run existing MFT scenarios for every LLM-driven feature. A regression in a prompt-spec is not a statistical fluctuation — it has a cause and a fix.
+- The log of unexpected classifier outputs (§21.1) is your early warning system. A spike in unexpected output after a model upgrade is a regression signal; investigate before attributing it to normal variance.
+
 ---
 
 ## 22. Live reproduction and dev tooling hygiene
@@ -1890,6 +1927,6 @@ This keeps diagnosis grounded in evidence rather than in mental models of the co
 
 ---
 
-**Last updated: 2026-08-21** — distilled from real production development experience. Every rule here exists because something broke when it wasn't followed.
+**Last updated: 2026-08-24** — distilled from real production development experience. Every rule here exists because something broke when it wasn't followed.
 
 *Starting fresh: copy FRAMEWORK.md + PLAYBOOK.md to repo root, run Session 0 checklist, follow 7-step pipeline. Existing codebase: start with Phase 0x — Retrofit in PLAYBOOK.md.*

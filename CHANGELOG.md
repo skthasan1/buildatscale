@@ -10,6 +10,34 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.9.0] — 2026-08-24
+
+### Added
+
+- **`/audit` Point 3 — Counter-factual verification (R3):** after verifying green with the fix present, remove the fix and reproduce the original failure. A passing test suite with the fix in place proves the fix doesn't break anything; only the counter-factual proves it does something.
+- **`/audit` Point 9 — Build artifact check (R1):** when a change touches module boundaries, exports, or build-config files, the built artifact must be executed (not just built) before marking Point 9 PASS.
+- **`/audit` Point 9 — Test suite coverage assertion (R2):** assert package count (monorepos), skip count, and count drift against CLAUDE.md. Exit 0 is necessary but not sufficient.
+- **`/mft` — Interaction-class bugs (R10a):** explicit list of defects that unit tests structurally cannot surface: hover/focus affordances, event batching, DOM ownership, perceived timing. Mark these with `[INTERACTION: visual/timing check]` in manual-test.md.
+- **`/impact` — Grep before you size (R8):** Step 0 (pre-search) — before estimating scope, grep for the column/function/endpoint to check whether a half-built implementation already exists.
+- **`/impact` Q7 — Invocation check (A5 re-raise):** "what actually invokes this in the deployed environment?" — logic without wiring is unreachable code.
+- **`/design` — Measure scale before choosing design (R11):** when design viability depends on data scale, seed the actual scale and measure before committing. Distinguish size of input from size of rendered consequence.
+- **`/foundation` Point 6 — Component/interaction harness check (R10b):** note whether the project has a component-level test harness (RTL, Vue Test Utils). Flag the interaction-class gap if not.
+- **`/security` A01 — Tenant isolation (B3):** added tenant-isolation row — for B2B features, verify tenant ID is in every WHERE clause, not just user ID.
+- **`/security` A03 — Fence delimiter note (B3 fence):** the `<untrusted-data>` delimiter must be one the untrusted content cannot contain; reference to §18.5 fence containment.
+- **`/security` A05 — Committed defaults (B4):** `process.env.X ?? '<literal>'` anti-pattern; full-mode "new" qualifier removed.
+- **`/security` A07 — Bypass property not implementation (B2):** rewritten to ask (a) what makes the bypass unreachable in the deployed config, (b) whether the bypass credential is unforgeable.
+- **`/security` SEC-NNN format — Reachability field (C1):** added `Reachability:` field; unverified findings are capped at Medium severity.
+- **`/security` — Stack-agnostic sweep + security surface map template (B1):** introductory note to adapt terminology to the project's access control model; `CLAUDE.md` security surface map template.
+- **`shared/FRAMEWORK.md` §9 — Known limits as passing tests (R4):** limits claimed by security/integrity features must be enforced by a passing test, not a comment.
+- **`shared/FRAMEWORK.md` §11 Rules 9+10 — Worktree per agent (R7) + clean merge ≠ agreement (R9):** one worktree per parallel agent; never `git add -A`; semantically clean merges require a human review when both sides touch the same concept.
+- **`shared/FRAMEWORK.md` §17 — Control the search (R5):** run a known-hit control before trusting zero results; prefer loud-failure search tools.
+- **`shared/FRAMEWORK.md` §18.2 — Committed fallback anti-pattern (B4):** `?? '<literal>'` is worse than a missing value on security-sensitive env vars.
+- **`shared/FRAMEWORK.md` §18.5 — Fence delimiter containment (B3):** the untrusted-data delimiter must be one the user cannot produce; nonce-based delimiter option.
+- **`shared/FRAMEWORK.md` §18.6 — Versioned signature downgrade oracle (R12) (NEW SECTION):** attacker-controlled version prefix → downgrade attack; monotonic progression gate; distinguish unverifiable from invalid; `alg:none` rediscovery pattern.
+- **`shared/FRAMEWORK.md` §21.4 — Prompt-spec defects (R6) (NEW SECTION):** prompt-spec defects are latent across model updates; treat model version bumps as dependency upgrades; unexpected classifier output log as early warning.
+
+---
+
 ## [2.8.0] — 2026-08-21
 
 ### Added

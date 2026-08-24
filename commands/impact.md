@@ -12,6 +12,8 @@ The change to analyze comes from:
 
 ## What to do
 
+**0. Grep before you size.** Before estimating scope or starting design, grep for the column name, flag name, function name, or endpoint path you are about to add. Does it already exist? If so: is it written to (full implementation) or only read (half-built feature)? A feature that is 40% built requires a different design — and a different scope estimate — than one that doesn't exist at all.
+
 **1. Search the codebase.** Use Grep and Glob to find:
 - Every file that defines the changed type, function, schema, or API endpoint
 - Every file that consumes or imports the changed surface
@@ -30,7 +32,7 @@ Spawn a search agent if the codebase is large:
 | 4 | **Cross-layer sync** — Which other components, services, or workers read the same data? |
 | 5 | **Test surface** — Which tests cover the changed path? Run `grep` for the function/type name now. |
 | 6 | **Adjacent code risk** — What else lives in the same file or execution path? List it. |
-| 7 | **Deployment/infra** — Deploy sequence constraints? New env vars? Infrastructure changes? |
+| 7 | **Deployment/infra** — Deploy sequence constraints? New env vars? Infrastructure changes? Also: what **actually invokes** this in the deployed environment — cron schedule, incoming webhook, user action, background queue job? Logic without wiring is unreachable code in production. Verify the invocation path exists, not just that the logic is correct. |
 | 8 | **Security surface** — Does this change touch a trust boundary? Answer yes/no, then list which apply: new or modified auth guard; new public endpoint; payment or payout flow; schema change to user/session/permission/invite tables; new PII or credential field; new external HTTP call (SSRF risk); new file upload or download path; new admin capability. A "yes" triggers `/security` as Step 3.5 in the pipeline. |
 
 **3. Output the standardized block:**

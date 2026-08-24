@@ -126,6 +126,8 @@ Check:
 
 If `pnpm test` fails or the config doesn't exist: FAIL.
 
+**Component/interaction test harness:** does the project have a component-level test harness (React Testing Library, Vue Test Utils, Storybook test runner)? Unit tests cover functions in isolation; E2E tests cover full browser flows. Component tests fill the gap: hover/focus affordances, event batching (debounce, throttle, flush trigger), and DOM ownership (portal placement, focus trap, scroll container). If no component harness exists, note the interaction-class gap in `docs/testing-strategy.md` — these bugs are structurally invisible to unit and E2E tests and can only be caught via manual test (`/mft`).
+
 ### Point 7 — Package / monorepo wiring
 
 For monorepo projects, check that workspace packages resolve correctly:
