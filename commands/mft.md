@@ -3,6 +3,18 @@
 Run the MFT scripts against a live running instance of the app.
 Claude executes every scenario step by step and reports results.
 
+## Testing tiers — which to run when
+
+There are three testing tiers. This skill runs Tier 1 by default. Escalate to Tier 2 or 3 when the trigger applies.
+
+| Tier | Artifact | When to run | Coverage |
+|---|---|---|---|
+| **1 — Per-feature MFT** | `docs/manual-test.md` | Step 5 of every pipeline chunk | Scenarios written for the current feature only |
+| **2 — Quick Smoke** | `docs/regression-suite.md` (QS-XX rows) | Before every merge to `main` | 10–15 critical flows across the whole product |
+| **3 — Full Regression** | `docs/regression-suite.md` (FR-XX rows) | Pre-release; major infra change (Redis, DB, storage provider); post-security fix | Every product layer — automated E2E rows skipped |
+
+If `docs/regression-suite.md` doesn't exist in the project yet, create it following the template in `shared/FRAMEWORK.md §9` (Regression suite section) before running Tier 2 or 3.
+
 ## When this applies
 
 This skill covers **two situations** — both follow the same log-first process:

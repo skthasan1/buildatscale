@@ -692,6 +692,72 @@ await page.route('**/v1/chat/completions', route => { // OpenAI
 - **Env var injection unreliability** — don't rely on `webServer.env` in `playwright.config.ts` to reach server-side code in Next.js 16 + Turbopack, Vite SSR, or similar modern bundlers. Use `storageState` for auth and `page.route()` for external services instead.
 - **Dotenv comment parsing** — when reading `.env` files in `globalSetup`, strip inline comments (`KEY=val # comment`). Many dotenv parsers include the ` # comment` as part of the value, silently breaking connection strings and tokens.
 - **Framework middleware fires before route handlers** — for middleware-level auth (NextAuth App Router, Supabase SSR, custom Next.js middleware), any 307 redirect happens before your route handler code runs. Server-side bypass guards in the handler are unreachable.
+- **Worker output flooding** — if a background worker (BullMQ, Sidekiq, Celery) retries a failing job continuously during E2E runs, its output floods Playwright's terminal buffer and can cause assertion timeouts and flaky failures. Set `stdout: "ignore", stderr: "ignore"` on the worker `webServer` entry in `playwright.config.ts` — the test suite doesn't need to read worker output; it validates results through the DB and UI state.
+
+### Regression suite (docs/regression-suite.md)
+
+Per-feature MFT (Step 5 of the pipeline) verifies the feature you just built. The regression suite answers a different question: **does the whole product still work?** These are separate concerns and need separate artifacts.
+
+Create `docs/regression-suite.md` as a permanent project doc alongside `docs/manual-test.md` and `docs/bug-report.md`. It holds three tiers:
+
+#### Tier 1 — Per-feature MFT (run at Step 5 of every pipeline chunk)
+
+Scenarios are in `docs/manual-test.md`. Run only the scenarios written for the current chunk. Takes 5–20 minutes depending on the feature.
+
+#### Tier 2 — Quick Smoke (~20 minutes, run before every merge to main)
+
+A curated list of the 10–15 most critical user flows across the whole product. If any Quick Smoke scenario fails, block the merge. The table lives in `docs/regression-suite.md`:
+
+```markdown
+## Quick Smoke — ~20 minutes
+
+Run before every merge to `main`. All must pass. If any fail, block the merge.
+
+| # | Area | Scenario | Source | Status | Notes |
+|---|---|---|---|---|---|
+| QS-01 | Auth | Sign in → lands on correct page for role | CORE-01 #1 | ⏳ | |
+| QS-02 | [Core flow] | ... | ... | ⏳ | |
+```
+
+Reference `docs/manual-test.md` scenario IDs in the Source column so there's no scenario duplication.
+
+#### Tier 3 — Full Regression (~60–90 minutes, run before a beta/public release or major infra change)
+
+Organized by product layer. Run Tier 2 first — if it fails, there's no point running Tier 3. Layers that are fully covered by automated E2E can be marked auto-covered and skipped:
+
+```markdown
+## Full Regression — ~90 minutes
+
+### Layer 1 — [Feature area] (N min)
+
+| # | Scenario | Source | Status | Notes |
+|---|---|---|---|---|
+| FR-01 | ... | CORE-01 #1 | ⏳ | |
+```
+
+#### Run Log — always append, never edit
+
+Every run (automated or manual) is recorded in the Run Log table. This gives you a trend line across releases:
+
+```markdown
+## Regression Run Log
+
+| Date | Runner | Quick Smoke | Full Regression | Failures | Notes |
+|---|---|---|---|---|---|
+| 2026-08-24 | skthasan1 | — | Automated E2E only | BUG-003 | Web E2E 101/104; desktop 27/27 |
+```
+
+#### E2E coverage shortcut
+
+Scenarios that are fully covered by the automated E2E suite don't need to be re-run manually. Mark them in the regression suite table with an "Automated" note and skip them — this can save 30–40 minutes on a Full Regression run. If the E2E suite passes, those rows are implicitly ✅. The rule: **an E2E test covers a regression row only if the E2E test exercises the exact same user path, not a related one**.
+
+#### When to run each tier
+
+| Tier | When |
+|---|---|
+| Per-feature MFT | Every pipeline Step 5 — after every feature chunk |
+| Quick Smoke | Before every merge to `main` |
+| Full Regression | Pre-release; major infra change (DB migration, Redis provider swap, storage switch); after a security fix that touches auth |
 
 ---
 

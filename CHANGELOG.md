@@ -10,6 +10,16 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.10.0] — 2026-08-24
+
+### Added
+
+- **`shared/FRAMEWORK.md` §9 — Regression suite (docs/regression-suite.md):** new subsection documenting the three-tier testing cadence: Tier 1 per-feature MFT (Step 5 pipeline), Tier 2 Quick Smoke (pre-merge to main), Tier 3 Full Regression (pre-release / major infra change). Covers the `docs/regression-suite.md` artifact structure (Quick Smoke table, Full Regression layers, Run Log), the E2E coverage shortcut rule (automated E2E passes → skip corresponding manual rows), and when to escalate between tiers. Motivated by the gap between "tests pass per-feature" and "whole product still works".
+- **`shared/FRAMEWORK.md` §9 — Worker output flooding gotcha:** added to E2E gotchas: set `stdout:"ignore", stderr:"ignore"` on the worker webServer entry when a background worker retries continuously during test runs; output flooding causes assertion timeouts and flaky failures.
+- **`/mft` — Testing tiers table:** new top-of-skill table mapping each tier to its artifact, trigger, and coverage scope. Clarifies that `/mft` runs Tier 1 by default and describes when to escalate to Quick Smoke (Tier 2) or Full Regression (Tier 3). References `shared/FRAMEWORK.md §9` for the `docs/regression-suite.md` template when it doesn't exist yet in the project.
+
+---
+
 ## [2.9.0] — 2026-08-24
 
 ### Added
