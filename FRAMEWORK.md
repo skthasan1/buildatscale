@@ -316,6 +316,125 @@ Three tiers, depth scales with project maturity.
 | `docs/dev-setup-guide.md` | Technical setup — clone to running app |
 | `docs/architecture.md` | System overview and component relationships |
 | `docs/positioning.md` | What the product is, what it isn't, launch niche |
+| `docs/ux-patterns.md` | Product design system — color tokens, typography, component inventory, approved patterns, anti-patterns |
+
+`docs/ux-patterns.md` is the single source of truth for visual and interaction consistency. Every UI chunk references it during build (`/build`) and is checked against it during audit (`/audit` Point 11). Create it at Session 0 and keep it updated as the product's design language evolves.
+
+#### docs/ux-patterns.md — starter template
+
+Copy and fill in every section. Replace `[PLACEHOLDER]` values with your product's actual tokens.
+
+```markdown
+# [Product name] — UX Patterns
+
+> Single source of truth for visual and interaction consistency.
+> Reference this before building any UI. Check against it during /audit Point 11.
+
+---
+
+## Color tokens
+
+| Token | Use | Value |
+|---|---|---|
+| Primary action | Buttons, links, active states | [e.g. violet-600] |
+| Primary hover | Hover on primary action | [e.g. violet-700] |
+| Destructive | Delete, revoke, ban | [e.g. red-600] |
+| Warning | Strikes, probation, caution | [e.g. amber-500] |
+| Muted text | Secondary labels, timestamps | [e.g. zinc-400] |
+| Surface | Card backgrounds | [e.g. zinc-900] |
+| Border | Dividers, card outlines | [e.g. zinc-800] |
+
+Never use raw hex values in component code. Always use the token name (Tailwind class or CSS variable).
+
+---
+
+## Typography scale
+
+| Role | Size / Weight | Tailwind |
+|---|---|---|
+| Page heading | 24px bold | `text-2xl font-bold` |
+| Section heading | 18px semibold | `text-lg font-semibold` |
+| Body | 14px regular | `text-sm` |
+| Label / caption | 12px medium | `text-xs font-medium` |
+| Monospace / code | 13px mono | `text-xs font-mono` |
+
+---
+
+## Spacing & layout
+
+- Page horizontal padding: `px-4 sm:px-6`
+- Card inner padding: `p-4` (compact) / `p-6` (standard)
+- Section gap: `gap-4` (tight) / `gap-6` (standard) / `gap-8` (loose)
+- Max content width: `max-w-5xl mx-auto`
+- Sidebar width: [e.g. `w-64`]
+
+---
+
+## Component inventory
+
+| Component | File | Approved usage |
+|---|---|---|
+| [Button] | `src/components/ui/button.tsx` | All interactive actions — no raw `<button>` |
+| [Modal/Dialog] | `src/components/ui/dialog.tsx` | Confirmations, forms — no inline `display:none` toggles |
+| [Toast] | `src/components/ui/toast.tsx` | Success/error feedback — via `sonner` or similar |
+| [Badge] | `src/components/ui/badge.tsx` | Status labels — never raw `<span>` with color class |
+
+Before building a new component, check this list. Reuse before invent.
+
+---
+
+## Approved patterns
+
+### Empty state
+- Centered in the container (flex col items-center justify-center)
+- Icon or illustration at top (muted, 48px)
+- Heading (section heading scale)
+- 1–2 line description (body, muted text)
+- Primary CTA button if an action is available
+
+### Loading state
+- Skeleton placeholder matching the shape of the loaded content (not a spinner in the middle of a card)
+- Spinner only for full-page loads or modals
+
+### Error state
+- Inline error message in red below the relevant field (forms)
+- Full-page error: heading + message + "Try again" button
+
+### Confirmation modal
+- Title states the action ("Delete photo?")
+- Body describes the consequence ("This cannot be undone")
+- Destructive button on the right, Cancel on the left
+
+### Toast messages
+- Success: `[Action] successful` — auto-dismiss 3s
+- Error: `Something went wrong — [specific reason if safe to show]` — no auto-dismiss
+- Info: auto-dismiss 4s
+
+---
+
+## Anti-patterns
+
+These are explicitly not allowed. Flag in `/audit` Point 11 if found:
+
+- Hardcoded hex colours (`#7c3aed`) — use token classes instead
+- `window.confirm()` — use the project's `<ConfirmDialog>` component
+- Inline `style={{}}` for anything in the token system (color, spacing, typography)
+- Raw `<button>` without the shared Button component (loses focus ring, variant system)
+- New icon library added without a plan-row decision — use the project's established icon set
+- `onClick` on a `<div>` — use a `<button>` for keyboard accessibility
+
+---
+
+## Responsive breakpoints
+
+| Breakpoint | Width | Rule |
+|---|---|---|
+| Mobile | < 640px | Single column, icon-only nav |
+| Tablet | 640–1024px | Two columns, abbreviated labels |
+| Desktop | > 1024px | Full layout |
+
+All new UI must render correctly at 375px without horizontal scroll.
+```
 
 ### Tier 2 — Before feature (per chunk)
 
@@ -613,6 +732,16 @@ Any fix that touches search, fuzzy-matching, text extraction, or LLM classificat
 **Sequence scenario** — set up a real sequence of 2+ dependent actions (action 2 run *after* action 1's side effect has changed the state), for any bug involving state that changes between steps. Example: complete reminder A, then verify complete-reminder for reminder B still resolves to B, not a stale pre-completion match. A single-message or single-call check cannot reproduce a bug that only exists in the interaction between two sequential writes.
 
 **"Verified" means downstream state, not function return value.** For these scenario types, the pass condition is confirmed via the real downstream state — a DB read, a UI list check, an API query for the resulting record. The function's isolated return value is a necessary but not sufficient check. Kairo convention: "confirmed via show reminders" or "confirmed via DB read" in the MFT result counts as verified; "extractor returned correct JSON" alone does not.
+
+**UX consistency scenario** — for any chunk that adds or changes UI, include all of the following in `docs/manual-test.md`. These are structurally invisible to unit tests and can only be caught with a human eye.
+
+1. **Token check** — open DevTools, inspect the changed element. Confirm no raw hex colors, no inline `style` for anything in the token system, no new icon library.
+2. **Four-state check** — exercise the component through all four states: loading (skeleton/spinner visible), empty (correct empty state, not blank), error (inline error or toast appears), success (confirmation feedback fires). Mark each sub-state PASS/FAIL.
+3. **Keyboard check** — Tab through the new UI without using a mouse. Every interactive element must be reachable, activated with Enter/Space, and show a visible focus ring.
+4. **Responsive check** — resize browser to 375px width. No horizontal scroll, no clipped text, no overlapping elements.
+5. **Pattern check** — does the new UI match the approved pattern for its category in `docs/ux-patterns.md`? (modal = confirmation modal pattern, toast = toast pattern, etc.)
+
+Mark this `[UX: visual/interaction check]` in `docs/manual-test.md` — it requires a human, not just a functional assertion.
 
 **Repeat-mechanism escalation rule** — if a second bug sharing the identical root-cause mechanism (same extractor pattern, same matching logic, same flow) is found within the same session, stop and grep for every other site sharing that mechanism before continuing. Patch the cluster once, not one instance at a time as each is separately discovered by testing.
 

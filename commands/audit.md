@@ -133,6 +133,27 @@ Bug log check (`docs/bug-report.md`):
 - Any `fixed` bugs the test team hasn't re-run? Hold — do not mark release done until verified.
 - Any bug this session's fix touches? Update its status (open → fixed) and add the commit reference.
 
+### Point 11 — UX consistency
+
+**Only run this point if `/impact` reported `UI surface: yes`.** Skip entirely for API-only, schema-only, or infra-only changes.
+
+Check the diff for:
+
+1. **Token compliance** — any raw hex color values, hardcoded pixel sizes for spacing/typography, or `style={{}}` attributes covering something in the token system? FAIL if found. Every color, spacing unit, and type size must use the project's token classes (Tailwind classes, CSS variables, or design-system tokens from `docs/ux-patterns.md`).
+
+2. **Four-state completeness** — does the changed UI cover all states that can occur?
+   - Loading: skeleton or spinner while data fetches
+   - Empty: intentional empty state (not a blank container)
+   - Error: inline error message or toast — never silent failure
+   - Success: confirmation feedback (toast, state change, or navigation)
+   Missing a state is a FAIL — log it, don't silently defer it.
+
+3. **Keyboard accessibility** — every interactive element (button, link, input, modal trigger) must be reachable via Tab and activatable via Enter/Space. Modals must trap focus and close on Escape. Verify by reading the JSX — a `div` with an `onClick` and no `role="button"` + `tabIndex={0}` + `onKeyDown` is unreachable from the keyboard.
+
+4. **Focus ring** — does the focused element show a visible focus indicator? Tailwind's `focus:ring-*` or `focus-visible:ring-*` must be on every interactive element. `outline: none` without a replacement ring is a FAIL.
+
+5. **Reuse check** — does the new UI introduce a pattern that already exists in `docs/ux-patterns.md`? (A new custom modal when the shared Dialog is already approved; a one-off toast instead of `sonner`.) If a new pattern was intentionally introduced, was `docs/ux-patterns.md` updated to document it? New pattern without a doc update = FAIL.
+
 ---
 
 ## Output format
@@ -150,6 +171,7 @@ Point 7  Dev instructions: PASS / FAIL — [reason]
 Point 8  Test coverage:    PASS / FAIL — [reason]
 Point 9  Test execution:   PASS — [X passed, Y failed]
 Point 10 Cross-doc sync:   PASS / FAIL — [reason]
+Point 11 UX consistency:   PASS / FAIL / N/A — [reason or "no UI surface"]
 
 Items to fix:
 - [list of FAILs with specific files/lines]

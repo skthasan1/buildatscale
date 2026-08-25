@@ -10,6 +10,19 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.11.0] — 2026-08-24
+
+### Added
+
+- **`shared/FRAMEWORK.md` §5 — `docs/ux-patterns.md` (Tier 1 doc):** added to the Session 0 doc checklist alongside CLAUDE.md and project-log.md. Includes a full starter template covering color tokens, typography scale, spacing/layout conventions, component inventory, approved patterns (empty state, loading, error, confirmation modal, toast), anti-patterns list, and responsive breakpoints. Projects fill in [PLACEHOLDER] values at Session 0; an empty template still satisfies the existence gate.
+- **`shared/FRAMEWORK.md` §9 — UX consistency scenario:** new MFT scenario type for any chunk where UI surface was touched: token check (DevTools inspect), four-state check (loading/empty/error/success), keyboard check (Tab+Enter+Escape+focus ring), responsive check (375px), pattern check (`docs/ux-patterns.md`). Marked `[UX: visual/interaction check]` in manual-test.md — requires human eye, not a functional assertion.
+- **`/foundation` Point 8 — `docs/ux-patterns.md` gate:** `docs/ux-patterns.md` added to the required Tier 1 docs table. FAIL if missing. Fix: create from the starter template in `shared/FRAMEWORK.md §5`. Runs automatically on `git clone shared` + setup prompt → `/foundation`, ensuring UX patterns doc exists before any UI code is written.
+- **`/impact` Q9 — UI surface:** ninth impact question: does this change add or modify UI? If yes: which existing component in `docs/ux-patterns.md` is the closest precedent? Reuse or new pattern (with reason). A "yes" answer triggers the UX scenario in `/mft` and Point 11 in `/audit`. Output block gains `UI surface:` row.
+- **`/audit` Point 11 — UX consistency:** five-check UX gate, runs only when `/impact` reported `UI surface: yes` (N/A for API/schema/infra-only changes): (1) token compliance — no raw hex or inline style for token-system values; (2) four-state completeness — loading/empty/error/success all handled; (3) keyboard accessibility — Tab reachable, Enter/Space activates, Escape closes modals, focus ring visible; (4) focus ring — `focus:ring-*` or `focus-visible:ring-*` on every interactive element; (5) reuse check — new pattern justified and documented in `docs/ux-patterns.md`. Output format updated with `Point 11 UX consistency: PASS / FAIL / N/A`.
+- **`/mft` — UX consistency scenario:** step-by-step UX scenario template added above the interaction-class bugs section. Five sub-checks matching `/audit` Point 11. Failure logs to `docs/bug-report.md` with sub-check number and observation.
+
+---
+
 ## [2.10.0] — 2026-08-24
 
 ### Added

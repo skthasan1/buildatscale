@@ -114,6 +114,20 @@ as a user would, not to tick a box.
 The bug log (`docs/bug-report.md`) is append-only — never edit another person's lines.
 Add comments with your name and date; let the status and Resolved by fields tell the story.
 
+### UX consistency scenario
+
+For any chunk where `/impact` reported `UI surface: yes`, add a UX scenario to `docs/manual-test.md` alongside the feature's happy-path scenario. Mark it `[UX: visual/interaction check]` so reviewers know it requires a human eye.
+
+Run each sub-check with a browser open:
+
+1. **Token check** — open DevTools, inspect the changed element. Confirm no raw hex colours, no inline `style` for spacing/colour/typography, no new icon library introduced without a plan-row decision.
+2. **Four-state check** — exercise the component through: loading (spinner/skeleton visible?), empty (correct empty state, not blank?), error (message or toast appears?), success (confirmation visible?). PASS each or log FAIL.
+3. **Keyboard check** — tab through the new UI without touching the mouse. Every interactive element must be reachable, activated with Enter/Space, and show a visible focus ring. Modals must trap focus and close on Escape.
+4. **Responsive check** — resize browser to 375px width. No horizontal scroll, no clipped text, no overlapping elements.
+5. **Pattern check** — open `docs/ux-patterns.md`. Does the new UI match the approved pattern for its category (modal, toast, empty state, form, confirmation)? If a new pattern was introduced, is it documented?
+
+If any sub-check fails: log it as a FAIL in `docs/bug-report.md` with sub-check number and exact observation, then ask "fix now or hand off?"
+
 ### Interaction-class bugs
 
 A category of defects that unit tests structurally cannot surface, regardless of coverage percentage. When running MFT, actively check for:
