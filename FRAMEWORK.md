@@ -133,6 +133,8 @@ The runner must be configured on Day 0. If it isn't, "run the tests" is a task t
 
 CLAUDE.md is the shared briefing for every Claude Code session AND every human developer. It is the only doc that gets updated every session. Treat it like a changelog — append-only for session notes, with a small "current state" block at the top.
 
+> **Context-load warning:** CLAUDE.md is force-loaded in full into every session's system context, unlike `docs/project-log.md` or `docs/bug-report.md`, which are only Read on demand. An unbounded session-notes section becomes a permanent, compounding context tax. Keep the inline window to ~15–20 entries and move older entries to `docs/session-history.md` — relocated, never deleted. See the rolling-window rule in §3 and `/wrap` Step 2d.
+
 ### Template
 
 ```markdown
@@ -202,7 +204,12 @@ docs/            — all documentation
 
 ## Session notes
 
-[Append-only. Each session adds one block at the top. Never delete past notes.]
+[Rolling window — newest first. Keep ~15–20 entries inline. When this section
+exceeds ~20 entries or ~600 lines (whichever comes first), move the oldest entries
+to `docs/session-history.md` (create if missing). Nothing is deleted — only
+relocated. Leave one pointer line at the bottom of the kept window:
+"Entries older than this point → `docs/session-history.md`."
+See /wrap Step 2d for the automated archive sub-step.]
 
 ### YYYY-MM-DD — [session topic]
 
@@ -238,14 +245,27 @@ Total tests: NNN
 - `docs/testing-strategy.md` — test counts + pyramid
 - `docs/debug-strategy.md` — APP_DEBUG, logs, observability
 - `docs/release-runbook.md` — release checklist
+- `docs/session-history.md` — archived session notes (relocated from CLAUDE.md once the inline window fills; newest-first)
 ```
+
+### CLAUDE.md structure variants
+
+Projects adopt one of two session-history layouts. Both are valid; choose at Session 0 and stay consistent.
+
+**Variant A — Separate `## Session notes` section (framework default)**
+A dedicated section below `## Current status` where each entry is a `### YYYY-MM-DD — topic` sub-heading (multi-line). The `/wrap` Step 2d threshold is measured by `grep -c "^### " CLAUDE.md`.
+
+**Variant B — Flat bullets inside `## Current status` (single-section)**
+Session history is embedded directly in `## Current status` as `- **YYYY-MM-DD: description**` single-line bullets (newest first). The rolling-window threshold is measured by `grep -c "^- \*\*20" CLAUDE.md`. Vybev uses this variant.
+
+The archive target (`docs/session-history.md`) and the pointer-line format are identical in both variants — only the section name and detection pattern differ. Document which variant the project uses in the `## Session notes` (or `## Current status`) section comment.
 
 ### Rules for keeping CLAUDE.md current
 
 1. **After every session:** update Current status, Total tests, Next up. Append a session note.
 2. **After every feature shipped:** the session note records date, what shipped, test count delta.
 3. **After every locked decision:** add to locked decisions register.
-4. **Never delete past session notes.** They are the project's memory; future debugging will need them.
+4. **Keep session notes in a rolling window.** Session notes are the project's memory — nothing is ever deleted. But CLAUDE.md is force-loaded in full every session, so the inline section is bounded: ~15–20 entries maximum. When it overflows, move the oldest entries to `docs/session-history.md` (newest-first ordering, nothing removed). Leave a pointer line at the bottom of the kept window. Future debugging can always read `docs/session-history.md` — it just isn't force-loaded into every context.
 5. **After every PR merge:** update "Active chunk assignments" — remove completed rows, add new ones for newly-started chunks.
 
 CLAUDE.md is the briefing document. If a piece of information would help a new developer (or a fresh Claude session) understand the project today, it belongs here. If it's historical detail, it belongs in the session notes section.

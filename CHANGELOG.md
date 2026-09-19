@@ -10,6 +10,26 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.12.0] — 2026-09-18
+
+### Added
+
+- **`shared/FRAMEWORK.md` §3 — CLAUDE.md context-load warning:** added an explicit callout that CLAUDE.md is force-loaded in full into every session's context window (unlike `docs/project-log.md` / `docs/bug-report.md`, which are only Read on demand). An unbounded session-notes section is the dominant cause of premature mid-session compaction on long-running projects. Confirmed real-world case: Vybev reached 250 lines from 35 date-stamped entries in `## Current status` before the archive rule was applied.
+- **`shared/FRAMEWORK.md` §3 — CLAUDE.md structure variants:** two valid session-history patterns documented — Variant A (separate `## Session notes` section, `### YYYY-MM-DD` headings, detection: `grep -c "^### "`) and Variant B (flat bullets inside `## Current status`, `- **YYYY-MM-DD:**` format, detection: `grep -c "^- \*\*20"`). Both share the same archive target and pointer-line format. Projects pick one at Session 0 and stay consistent.
+- **`shared/FRAMEWORK.md` §3 — Rolling-window rule for session notes:** replaced "never delete" rule 4 with a bounded rolling-window rule: keep ~15–20 entries inline in CLAUDE.md, move older entries to `docs/session-history.md` (relocated, never deleted). `docs/session-history.md` added to the template's `## Key docs` list.
+- **`shared/FRAMEWORK.md` §3 template — Updated `## Session notes` comment:** replaced `[Append-only. Each session adds one block at the top. Never delete past notes.]` with the rolling-window instruction.
+- **`/wrap` Step 2d — Archive-on-threshold sub-step:** updated to handle both structure variants. Detection command is variant-specific (`grep -c "^### "` for Variant A, `grep -c "^- \*\*20"` for Variant B). Threshold > 20 entries or > 600 lines: move entries 16+ to `docs/session-history.md`, leave pointer line. Self-sustaining rolling window.
+
+### Changed
+
+- **`shared/FRAMEWORK.md` §3 — Rule 4 reworded:** "Never delete past session notes" → "Keep session notes in a rolling window." Preserves the intent (nothing deleted, future debugging supported) while bounding the force-loaded section size.
+
+### Applied
+
+- **Vybev CLAUDE.md cleanup (Variant B):** archived 20 older `## Current status` entries to `docs/session-history.md`, keeping 15 recent entries inline. CLAUDE.md: 250 → 219 lines.
+
+---
+
 ## [2.11.0] — 2026-08-24
 
 ### Added

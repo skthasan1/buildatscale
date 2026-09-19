@@ -53,6 +53,48 @@ memory or from earlier in the session — run it fresh.
 Any new plan-rows filed. Any deferred items.]
 ```
 
+**d. Archive old entries if the session-notes section has grown too large** — after
+prepending the new entry, check the project's CLAUDE.md structure variant (see
+`shared/FRAMEWORK.md §3 — CLAUDE.md structure variants`) and count accordingly:
+
+```bash
+# Variant A — separate ## Session notes section (### YYYY-MM-DD headings)
+grep -c "^### " CLAUDE.md
+
+# Variant B — flat bullets inside ## Current status (- **YYYY-MM-DD: ...**)
+grep -c "^- \*\*20" CLAUDE.md
+```
+
+CLAUDE.md is force-loaded in full into every session's context window, unlike
+`docs/project-log.md` or `docs/bug-report.md`, which are only Read on demand.
+Left unchecked, this section grows without bound and is the dominant cause of
+premature mid-session compaction.
+
+If the entry count exceeds **20** or the history section exceeds **600 lines**
+(whichever comes first):
+
+1. Entries are prepended newest-first — the oldest are at the bottom.
+2. Move everything beyond the ~15-entry window (i.e. entry 16 and older) into
+   `docs/session-history.md`. Create it if it doesn't exist, with this header:
+   ```markdown
+   # Session history
+
+   Archived from CLAUDE.md. Newest-first. Nothing is deleted — only relocated.
+   Use `## Session notes` in CLAUDE.md for recent entries.
+   ```
+3. Append the moved entries under that header (they arrive in newest-first order;
+   prepend them above any entries already in `session-history.md` so the file stays
+   newest-first end-to-end).
+4. Leave one pointer line at the bottom of the kept window in CLAUDE.md:
+   ```
+   > **Session notes older than this point have been moved to
+   > `docs/session-history.md`.** Nothing was deleted — only relocated.
+   ```
+5. Leave the rest of CLAUDE.md untouched.
+
+Do this on every wrap once the threshold is crossed — a self-sustaining rolling window,
+not a one-time cleanup.
+
 ### 3. Update testing-strategy.md
 
 If the test count changed, update `docs/testing-strategy.md` per the 4-case rule
