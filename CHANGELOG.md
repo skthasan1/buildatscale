@@ -10,6 +10,15 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.13.1] — 2026-10-03
+
+### Fixed
+
+- **`shared/ci/check-claude-md-budget.mjs` — regex no-op bug:** `extractSection()` used `$` in a lookahead under the `m` flag, which causes `$` to match end-of-every-line (not end-of-string). `[\s\S]*?` would stop immediately after the heading line, so every section reported `0.0 KB` and the budget check could never fail. Fix: dropped the `m` flag; use `\n## ` explicitly in the lookahead so `$` means end-of-string. Sections now measure correctly (e.g. Current status = 0.8 KB, Session notes = 1.7 KB).
+- **`shared/ci/check-claude-md-budget.mjs` — CRLF safety:** normalize `\r\n` → `\n` before all regex matching so the script works correctly on Windows (where files may have CRLF line endings).
+
+---
+
 ## [2.13.0] — 2026-10-03
 
 ### Added
