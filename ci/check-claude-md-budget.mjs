@@ -43,8 +43,11 @@ try {
   process.exit(1);
 }
 
+// Normalize line endings so the regex works on Windows (CRLF) and Unix (LF)
+const normalized = content.replace(/\r\n/g, '\n');
+
 // Parse budget block
-const budgetMatch = content.match(/<!--claude-md-budget\n([\s\S]*?)-->/);
+const budgetMatch = normalized.match(/<!--claude-md-budget\n([\s\S]*?)-->/);
 if (!budgetMatch) {
   console.warn(
     '⚠️   No <!--claude-md-budget --> block found in CLAUDE.md.\n' +
@@ -69,7 +72,10 @@ const sessionIndexLimit  = parseFloat(budget.session_index_kb  ?? '3');
 function extractSection(text, heading) {
   // Escape heading for regex (handles parens, brackets, etc.)
   const esc = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const re = new RegExp(`^## ${esc}[\\s\\S]*?(?=^## |<!--claude-md-budget|$)`, 'm');
+  // No 'm' flag: $ means end-of-string. Use \n## to catch the next heading
+  // explicitly rather than ^ under 'm', which caused $ to match end-of-every-line
+  // (making [\s\S]*? stop immediately after the heading line — reporting 0 KB always).
+  const re = new RegExp(`## ${esc}[\\s\\S]*?(?=\\n## |\\n<!--claude-md-budget|$)`);
   const m = text.match(re);
   return m ? m[0] : null;
 }
@@ -79,7 +85,7 @@ function kbOf(str) {
 }
 
 // 1. Total file size
-const totalKb = kbOf(content);
+const totalKb = kbOf(normalized);
 if (totalKb > totalKbLimit) {
   fail(
     `Total size ${totalKb.toFixed(1)} KB exceeds budget of ${totalKbLimit} KB.\n` +
@@ -90,7 +96,7 @@ if (totalKb > totalKbLimit) {
 }
 
 // 2. ## Current status section
-const currentSection = extractSection(content, 'Current status');
+const currentSection = extractSection(normalized, 'Current status');
 if (currentSection) {
   const kb = kbOf(currentSection);
   if (kb > currentStatusLimit) {
@@ -106,7 +112,7 @@ if (currentSection) {
 }
 
 // 3. ## Session notes section (should be an index only)
-const sessionSection = extractSection(content, 'Session notes');
+const sessionSection = extractSection(normalized, 'Session notes');
 if (sessionSection) {
   const kb = kbOf(sessionSection);
   if (kb > sessionIndexLimit) {
