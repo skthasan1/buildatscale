@@ -36,64 +36,46 @@ is always accurate, not just at retro time.
 
 Make these changes to CLAUDE.md in order:
 
-**a. Current status** — update the phase/feature description to reflect what shipped.
+**a. Current status — update in place**
 
-**b. Total tests** — run the test suite now to get the real count:
+Find the `## Current status` section and edit the relevant phase line(s) to reflect what shipped. Replace the "Next up" line with the next planned chunk. Do NOT append new lines — this section is a live snapshot, not a log. Old phase details go in the session note file.
+
+**b. Total tests — replace the count**
+
+Run the test suite to get the real number:
 ```
 [TEST_CMD] 2>&1 | tail -5   # use the command confirmed at project start
 ```
-Update the "Total tests" block with the actual number. Do not use the number from
-memory or from earlier in the session — run it fresh.
+Find the `Total tests: NNN` line in CLAUDE.md and replace the number. Do NOT add new lines. Do not use a number from memory — run it fresh.
 
-**c. Session note** — prepend a new entry at the TOP of the session notes section:
+**c. Session note file — write and index**
+
+1. Create `docs/session-notes/YYYY-MM-DD.md` (create `docs/session-notes/` if it doesn't exist):
+
+```markdown
+# Session note — YYYY-MM-DD — [plan-row ID]: [short title]
+
+## What shipped
+[What was built or changed. Be specific — file names, endpoints, components.]
+
+## Test count
+Total: NNN (+N this session)
+
+## Decisions made
+- [Any locked decisions or design choices. "None" if clean.]
+
+## Deferred / filed
+- [Any new plan-rows opened. "None" if clean.]
 ```
-### [YYYY-MM-DD] — [plan-row ID]: [short title]
 
-[What shipped. Test count delta (+N new tests). Any decisions made.
-Any new plan-rows filed. Any deferred items.]
+2. Prepend one index line at the TOP of the `## Session notes` section in CLAUDE.md:
+```
+- [YYYY-MM-DD — plan-row-ID: short title](docs/session-notes/YYYY-MM-DD.md)
 ```
 
-**d. Archive old entries if the session-notes section has grown too large** — after
-prepending the new entry, check the project's CLAUDE.md structure variant (see
-`shared/FRAMEWORK.md §3 — CLAUDE.md structure variants`) and count accordingly:
+That's the only change to `## Session notes` — one line. The full note lives in the file.
 
-```bash
-# Variant A — separate ## Session notes section (### YYYY-MM-DD headings)
-grep -c "^### " CLAUDE.md
-
-# Variant B — flat bullets inside ## Current status (- **YYYY-MM-DD: ...**)
-grep -c "^- \*\*20" CLAUDE.md
-```
-
-CLAUDE.md is force-loaded in full into every session's context window, unlike
-`docs/project-log.md` or `docs/bug-report.md`, which are only Read on demand.
-Left unchecked, this section grows without bound and is the dominant cause of
-premature mid-session compaction.
-
-If the entry count exceeds **20** or the history section exceeds **600 lines**
-(whichever comes first):
-
-1. Entries are prepended newest-first — the oldest are at the bottom.
-2. Move everything beyond the ~15-entry window (i.e. entry 16 and older) into
-   `docs/session-history.md`. Create it if it doesn't exist, with this header:
-   ```markdown
-   # Session history
-
-   Archived from CLAUDE.md. Newest-first. Nothing is deleted — only relocated.
-   Use `## Session notes` in CLAUDE.md for recent entries.
-   ```
-3. Append the moved entries under that header (they arrive in newest-first order;
-   prepend them above any entries already in `session-history.md` so the file stays
-   newest-first end-to-end).
-4. Leave one pointer line at the bottom of the kept window in CLAUDE.md:
-   ```
-   > **Session notes older than this point have been moved to
-   > `docs/session-history.md`.** Nothing was deleted — only relocated.
-   ```
-5. Leave the rest of CLAUDE.md untouched.
-
-Do this on every wrap once the threshold is crossed — a self-sustaining rolling window,
-not a one-time cleanup.
+**Why this model:** CLAUDE.md is force-loaded in full into every session's context window. Inline session notes that grow with every session become a permanent, compounding context tax. The index model keeps CLAUDE.md size flat (one line per session) while preserving every note in `docs/session-notes/` where it can be read on demand.
 
 ### 3. Update testing-strategy.md
 

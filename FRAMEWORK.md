@@ -131,9 +131,9 @@ The runner must be configured on Day 0. If it isn't, "run the tests" is a task t
 
 ## 3. CLAUDE.md template
 
-CLAUDE.md is the shared briefing for every Claude Code session AND every human developer. It is the only doc that gets updated every session. Treat it like a changelog — append-only for session notes, with a small "current state" block at the top.
+CLAUDE.md is the shared briefing for every Claude Code session AND every human developer. It is the only doc that gets updated every session.
 
-> **Context-load warning:** CLAUDE.md is force-loaded in full into every session's system context, unlike `docs/project-log.md` or `docs/bug-report.md`, which are only Read on demand. An unbounded session-notes section becomes a permanent, compounding context tax. Keep the inline window to ~15–20 entries and move older entries to `docs/session-history.md` — relocated, never deleted. See the rolling-window rule in §3 and `/wrap` Step 2d.
+> **Context-load warning:** CLAUDE.md is force-loaded in full into every session's system context, unlike `docs/project-log.md` or `docs/bug-report.md`, which are only Read on demand. Its total size directly determines how much context budget is consumed before any work begins. The v2.13.0 index model keeps CLAUDE.md small by design: session notes are one-liners that link to full note files in `docs/session-notes/`. A size budget block and CI check script enforce the limits. See §3.1.
 
 ### Template
 
@@ -181,7 +181,8 @@ docs/            — all documentation
 
 ## Current status
 
-[A snapshot of where the project is right now. Update every session. Keep this section small — old session details go below in append-only notes.]
+<!-- Update in place every session — do not append history here. Old phase details
+go in the session note file (docs/session-notes/YYYY-MM-DD.md). Keep under budget. -->
 
 - **Phase 0 (Foundations):** ✅ Done — [summary]
 - **Phase 1:** 🔧 In progress — [summary]
@@ -204,16 +205,11 @@ docs/            — all documentation
 
 ## Session notes
 
-[Rolling window — newest first. Keep ~15–20 entries inline. When this section
-exceeds ~20 entries or ~600 lines (whichever comes first), move the oldest entries
-to `docs/session-history.md` (create if missing). Nothing is deleted — only
-relocated. Leave one pointer line at the bottom of the kept window:
-"Entries older than this point → `docs/session-history.md`."
-See /wrap Step 2d for the automated archive sub-step.]
+<!-- Index only — full notes in docs/session-notes/YYYY-MM-DD.md. Add one line per
+session at the top, newest first. Never paste full notes here. The CI budget check
+(ci/check-claude-md-budget.mjs) enforces this section stays small. -->
 
-### YYYY-MM-DD — [session topic]
-
-[What shipped, test count delta, decisions made, any followups.]
+- [YYYY-MM-DD — session topic](docs/session-notes/YYYY-MM-DD.md)
 
 ## Total tests
 
@@ -245,30 +241,99 @@ Total tests: NNN
 - `docs/testing-strategy.md` — test counts + pyramid
 - `docs/debug-strategy.md` — APP_DEBUG, logs, observability
 - `docs/release-runbook.md` — release checklist
-- `docs/session-history.md` — archived session notes (relocated from CLAUDE.md once the inline window fills; newest-first)
+- `docs/session-notes/` — one file per session (`YYYY-MM-DD.md`); indexed from `## Session notes` above
+- `ci/check-claude-md-budget.mjs` — zero-dependency size budget enforcer (copy from `shared/ci/`)
 ```
 
-### CLAUDE.md structure variants
+<!--claude-md-budget
+total_kb: 64
+current_status_kb: 6
+session_index_kb: 3
+-->
 
-Projects adopt one of two session-history layouts. Both are valid; choose at Session 0 and stay consistent.
+### v2.13.0 — Index model (standard)
 
-**Variant A — Separate `## Session notes` section (framework default)**
-A dedicated section below `## Current status` where each entry is a `### YYYY-MM-DD — topic` sub-heading (multi-line). The `/wrap` Step 2d threshold is measured by `grep -c "^### " CLAUDE.md`.
+Each session's full note lives in `docs/session-notes/YYYY-MM-DD.md`. CLAUDE.md holds one index line per session in `## Session notes`:
 
-**Variant B — Flat bullets inside `## Current status` (single-section)**
-Session history is embedded directly in `## Current status` as `- **YYYY-MM-DD: description**` single-line bullets (newest first). The rolling-window threshold is measured by `grep -c "^- \*\*20" CLAUDE.md`. Vybev uses this variant.
+```
+- [2026-10-03 — D-22: beta stats card](docs/session-notes/2026-10-03.md)
+- [2026-09-19 — framework v2.12.0](docs/session-notes/2026-09-19.md)
+```
 
-The archive target (`docs/session-history.md`) and the pointer-line format are identical in both variants — only the section name and detection pattern differ. Document which variant the project uses in the `## Session notes` (or `## Current status`) section comment.
+**Why the index model:**
+- CLAUDE.md grows by one line per session (not 10–20 lines)
+- No merge conflicts on CLAUDE.md — one line prepended, no reordering
+- Full notes are always readable in `docs/session-notes/` without loading CLAUDE.md
+- CI budget check (`ci/check-claude-md-budget.mjs`) enforces the section stays small
+
+**`docs/session-notes/YYYY-MM-DD.md` format:**
+```markdown
+# Session note — YYYY-MM-DD — [topic]
+
+## What shipped
+[Summary of what was built or changed.]
+
+## Test count
+Total: NNN (+N this session)
+
+## Decisions made
+- [Any locked decisions or design choices]
+
+## Deferred / filed
+- [Any new plan-rows or open items]
+```
+
+**Migrating from Variant A or B (pre-v2.13.0):** for each existing session note in CLAUDE.md, create `docs/session-notes/YYYY-MM-DD.md` with the full note content, then replace the inline content with a one-liner index entry. Nothing is deleted — only moved.
+
+### Legacy structure variants (pre-v2.13.0)
+
+Projects predating v2.13.0 used one of two layouts. Both still work; migrate when convenient.
+
+**Variant A** — separate `## Session notes` with `### YYYY-MM-DD` sub-headings.  
+**Variant B** — flat bullets inside `## Current status` as `- **YYYY-MM-DD: description**`. (Vybev)
+
+### §3.1 — CLAUDE.md size budget
+
+CLAUDE.md is force-loaded in full into every session. Its size is a direct context tax — a 60 KB CLAUDE.md consumes ~15 K tokens before any work starts.
+
+**Add a budget block** at the end of CLAUDE.md (just before `## Key docs`):
+
+```
+<!--claude-md-budget
+total_kb: 64
+current_status_kb: 6
+session_index_kb: 3
+-->
+```
+
+**New project detection:** if CLAUDE.md is under 10 KB at Session 0, use tight defaults and relax explicitly as the project grows:
+
+```
+<!--claude-md-budget
+total_kb: 16
+current_status_kb: 2
+session_index_kb: 1
+-->
+```
+
+**CI enforcement:** copy `shared/ci/check-claude-md-budget.mjs` to `ci/` in your project and add this step to your CI workflow:
+
+```yaml
+- name: CLAUDE.md size budget
+  run: node ci/check-claude-md-budget.mjs
+```
+
+The script reads the budget block, checks total size + section sizes, and exits 1 with a clear message naming the oversized section. No dependencies — pure Node.js `fs` and `path`.
 
 ### Rules for keeping CLAUDE.md current
 
-1. **After every session:** update Current status, Total tests, Next up. Append a session note.
-2. **After every feature shipped:** the session note records date, what shipped, test count delta.
+1. **After every session:** update `## Current status` in place (replace relevant lines — do not append), update `## Total tests` in place (replace the count), add one index line to `## Session notes`, write full note to `docs/session-notes/YYYY-MM-DD.md`.
+2. **After every feature shipped:** the session note file records date, what shipped, test count delta, decisions made.
 3. **After every locked decision:** add to locked decisions register.
-4. **Keep session notes in a rolling window.** Session notes are the project's memory — nothing is ever deleted. But CLAUDE.md is force-loaded in full every session, so the inline section is bounded: ~15–20 entries maximum. When it overflows, move the oldest entries to `docs/session-history.md` (newest-first ordering, nothing removed). Leave a pointer line at the bottom of the kept window. Future debugging can always read `docs/session-history.md` — it just isn't force-loaded into every context.
+4. **Session notes use the index model.** CLAUDE.md holds one index line per session. Full notes live in `docs/session-notes/`. Nothing is ever deleted — only the location differs. `docs/session-notes/` is not force-loaded, so it can grow without limit.
 5. **After every PR merge:** update "Active chunk assignments" — remove completed rows, add new ones for newly-started chunks.
 
-CLAUDE.md is the briefing document. If a piece of information would help a new developer (or a fresh Claude session) understand the project today, it belongs here. If it's historical detail, it belongs in the session notes section.
+CLAUDE.md is the briefing document. If a piece of information would help a new developer (or a fresh Claude session) understand the project today, it belongs here. Historical detail belongs in `docs/session-notes/`.
 
 ---
 

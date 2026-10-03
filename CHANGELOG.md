@@ -10,6 +10,30 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.13.0] — 2026-10-03
+
+### Added
+
+- **`shared/ci/check-claude-md-budget.mjs` — zero-dependency CI budget enforcer:** reads a `<!--claude-md-budget -->` block from CLAUDE.md, checks total file size, `## Current status` section size, and `## Session notes` index size against configured limits. Exits 0 (pass) or 1 (named failing section + fix hint). No npm dependencies — plain Node.js `fs` and `path`. Add `node ci/check-claude-md-budget.mjs` as a CI step.
+- **`shared/FRAMEWORK.md` §3.1 — CLAUDE.md size budget:** new subsection documenting the budget block format, new-project auto-detection (< 10 KB → tight defaults: 16 KB / 2 KB / 1 KB; ≥ 10 KB → standard: 64 KB / 6 KB / 3 KB), and the CI enforcement step. Reverses the root cause of unbounded growth: the frame that called CLAUDE.md "a changelog" with "append-only" session notes.
+- **`shared/FRAMEWORK.md` §3 — Index model (v2.13.0 standard):** session notes are now one-liner index entries in `## Session notes` linking to full note files in `docs/session-notes/YYYY-MM-DD.md`. CLAUDE.md grows by exactly one line per session. Benefits: no merge conflicts on CLAUDE.md; full notes readable on demand; CI budget check is trivially satisfiable. Migration guide for Variant A/B projects included.
+- **`shared/FRAMEWORK.md` §3 template — updated sections:** `## Current status` comment now says "update in place"; `## Session notes` uses the index model with one example line; `## Key docs` lists `docs/session-notes/` and `ci/check-claude-md-budget.mjs`; budget block appended at end of template.
+- **`/wrap` Step 2 overhaul:** (a) Current status — update in place, not append; (b) Total tests — replace the count, not append; (c) Session note — write full note to `docs/session-notes/YYYY-MM-DD.md` + add one index line to `## Session notes` in CLAUDE.md. Step 2d (rolling-window archive) removed — superseded by the index model.
+- **`/foundation` Point 8b — CLAUDE.md size budget gate:** checks for budget block, detects project size (< 10 KB → set tight defaults; ≥ 10 KB → standard), checks `docs/session-notes/` exists, checks `ci/check-claude-md-budget.mjs` exists. FAIL if block or script missing. Output format updated.
+- **`/audit` Point 10 — budget check:** `node ci/check-claude-md-budget.mjs` added as a required cross-doc sync step. Must exit 0 before the audit point passes.
+
+### Changed
+
+- **`shared/FRAMEWORK.md` §3 — Rule 1:** "append a session note" → "write session note file + add index line"
+- **`shared/FRAMEWORK.md` §3 — Rule 4:** rolling-window rule replaced with index model description
+- **`shared/FRAMEWORK.md` §3 — intro paragraph:** removed "treat it like a changelog — append-only" language (the root cause identified in the project field report)
+
+### Deprecated
+
+- **Variant A / Variant B session-history layouts** (introduced in v2.12.0) — still valid for existing projects; migrate to the index model when convenient. Both legacy variants are documented in §3 under "Legacy structure variants (pre-v2.13.0)".
+
+---
+
 ## [2.12.0] — 2026-09-18
 
 ### Added

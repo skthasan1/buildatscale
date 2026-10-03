@@ -160,7 +160,45 @@ If `docs/ux-patterns.md` is missing: FAIL. Create it immediately from the starte
 Also check: if a new service, env var, or infrastructure decision was added this session,
 is it reflected in `CLAUDE.md` and the relevant docs?
 
-### Point 8b — Settings dual-tool coverage (Windows check)
+### Point 8b — CLAUDE.md size budget
+
+Check that CLAUDE.md has a budget block:
+
+```bash
+grep -c "claude-md-budget" CLAUDE.md
+```
+
+If missing, add one. Detect project maturity by file size:
+
+```bash
+wc -c < CLAUDE.md   # bytes
+```
+
+- **< 10 KB (new/small project):** use tight defaults — easy to relax later, hard to trim later:
+  ```
+  <!--claude-md-budget
+  total_kb: 16
+  current_status_kb: 2
+  session_index_kb: 1
+  -->
+  ```
+- **≥ 10 KB (mature project):** use standard defaults:
+  ```
+  <!--claude-md-budget
+  total_kb: 64
+  current_status_kb: 6
+  session_index_kb: 3
+  -->
+  ```
+
+Also check:
+- `docs/session-notes/` directory exists (create if missing)
+- `ci/check-claude-md-budget.mjs` exists (copy from `shared/ci/check-claude-md-budget.mjs` if missing)
+- Budget check step exists in CI workflow: `node ci/check-claude-md-budget.mjs`
+
+FAIL if budget block is missing. FAIL if `ci/check-claude-md-budget.mjs` is missing.
+
+### Point 8c — Settings dual-tool coverage (Windows check)
 
 > Skip this point on macOS/Linux where only the `Bash` tool is used.
 
@@ -204,6 +242,8 @@ Point 5   Dev quickstart:     PASS / FAIL — [reason]
 Point 6   Test baseline:      PASS / FAIL — [reason]
 Point 7   Package wiring:     PASS / FAIL — [reason]
 Point 8   Docs baseline:      PASS / FAIL — [reason]
+Point 8b  CLAUDE.md budget:   PASS / FAIL — [reason]
+Point 8c  Settings coverage:  PASS / FAIL / N/A — [reason or "macOS/Linux — skipped"]
 Point 9   Push:               PASS / FAIL — [reason]
 
 Items to fix:

@@ -127,6 +127,7 @@ to un-skip. "Tests should be passing" is not a substitute for running them.
 - Test counts in CLAUDE.md match the output from Point 9?
 - `docs/testing-strategy.md` updated (4-case rule from `shared/FRAMEWORK.md` Section 9)?
 - All shipped plan-rows marked ✅ done in `docs/project-log.md`?
+- CLAUDE.md size budget: run `node ci/check-claude-md-budget.mjs` — must exit 0. If it fails, the session note or current status section grew beyond its budget; trim before closing.
 
 Bug log check (`docs/bug-report.md`):
 - Any `open` bugs with no plan row? Either assign one or add a comment explaining the deferral.
