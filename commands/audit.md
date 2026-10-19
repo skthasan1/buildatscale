@@ -129,10 +129,10 @@ to un-skip. "Tests should be passing" is not a substitute for running them.
 - All shipped plan-rows marked ✅ done in `docs/project-log.md`?
 - CLAUDE.md size budget: run `node ci/check-claude-md-budget.mjs` — must exit 0. If it fails, the session note or current status section grew beyond its budget; trim before closing.
 
-Bug log check (`docs/bug-report.md`):
+Bug log check (`docs/bug-report.md`) — in multi mode (`project-mode` block in CLAUDE.md) read **every** person's list; ids are `<handle>-NNN`:
 - Any `open` bugs with no plan row? Either assign one or add a comment explaining the deferral.
 - Any `fixed` bugs the test team hasn't re-run? Hold — do not mark release done until verified.
-- Any bug this session's fix touches? Update its status (open → fixed) and add the commit reference.
+- Any bug this session's fix touches? Update its status (open → fixed) and add the commit reference. (Multi mode: if the bug is in someone else's list, add a comment there instead of editing their entry.)
 
 ### Point 11 — UX consistency
 

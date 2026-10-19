@@ -50,7 +50,7 @@ Find the `Total tests: NNN` line in CLAUDE.md and replace the number. Do NOT add
 
 **c. Session note file — write and index**
 
-1. Create `docs/session-notes/YYYY-MM-DD.md` (create `docs/session-notes/` if it doesn't exist):
+1. Create `docs/session-notes/YYYY-MM-DD.md` (create `docs/session-notes/` if it doesn't exist). **Multi mode** (`project-mode` block in CLAUDE.md): name it `YYYY-MM-DD-<handle>.md` so two people on the same day don't collide, and use that name in the index line below:
 
 ```markdown
 # Session note — YYYY-MM-DD — [plan-row ID]: [short title]

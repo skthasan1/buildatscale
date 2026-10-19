@@ -30,6 +30,7 @@ Ask these questions. Collect answers before proceeding.
 
 **1c — Team**
 > "Solo developer, or multiple people? If multiple: how many, and are they technical?"
+> If multiple people will log bugs: set `mode: multi` in the CLAUDE.md `project-mode` block (per-person bug ids `<github-handle>-NNN` — FRAMEWORK.md §3.2 / §12). Solo: leave the default.
 
 **1d — Constraints**
 > "Any hard constraints? Budget limits, specific infrastructure required (e.g. must use AWS), existing accounts (Stripe, Supabase, Vercel), timeline, or non-negotiables?"

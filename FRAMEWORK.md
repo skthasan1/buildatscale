@@ -196,6 +196,12 @@ go in the session note file (docs/session-notes/YYYY-MM-DD.md). Keep under budge
 
 [List names or GitHub handles. Update when team changes.]
 
+<!--project-mode
+mode: solo
+-->
+<!-- v2.14.0: `solo` (default) = BUG-NNN, one shared sequence. `multi` = per-person
+ids <github-handle>-NNN. Missing block = solo. See §3.2 and §12. -->
+
 ## Active chunk assignments
 
 [Each entry: plan-row ID — assigned developer — branch name. Remove on merge.]
@@ -324,6 +330,25 @@ session_index_kb: 1
 ```
 
 The script reads the budget block, checks total size + section sizes, and exits 1 with a clear message naming the oversized section. No dependencies — pure Node.js `fs` and `path`.
+
+### §3.2 — Project mode (solo / multi)
+
+Added in v2.14.0. One setting decides how finding/bug ids are numbered. It lives in CLAUDE.md as a small HTML-comment block — the same mechanism as the §3.1 budget block, so there is no second config file:
+
+```
+<!--project-mode
+mode: multi
+-->
+```
+
+| Mode | Bug ids | Lists in `docs/bug-report.md` |
+|---|---|---|
+| `solo` (default) | `BUG-NNN`, one shared sequence | One list |
+| `multi` | `<github-handle>-NNN` (e.g. `sivakann25g-001`) | One list per person |
+
+**If the block is missing, or `mode:` is anything other than `multi`, every skill behaves as `solo`.** Solo projects need to do nothing — their behaviour is identical to v2.13.x.
+
+CLAUDE.md is already force-loaded into every session, so skills read the mode from context; no script is needed. Skills that number ids (`/mft`, `/audit`, `/foundation`) state which mode they found in their output. Details of the multi-mode id format, who owns shared counters, and migration are in §12 "Working with several developers".
 
 ### Rules for keeping CLAUDE.md current
 
@@ -643,7 +668,7 @@ Run the MFT scripts you wrote in Step 2 against a real running instance. This me
 
 **Claude runs the MFT scripts** — not describes them, not defers them to the user. Open the app, follow each script, report findings. If the app can't be started in this environment (CI, headless, sandbox, missing credentials), say so explicitly, list which scenarios need human verification, and mark them in `docs/manual-test.md` as `[ ] requires human — [reason]`.
 
-**Conversational testing feedback counts.** If the user says "this is broken" or "I see X instead of Y" during any session — not just a formal `/mft` run — treat it as a FAIL finding. Log it in `docs/bug-report.md` first, then ask "fix now or hand off?" Do not convert testing feedback directly into a code change.
+**Conversational testing feedback counts.** If the user says "this is broken" or "I see X instead of Y" during any session — not just a formal `/mft` run — treat it as a FAIL finding. Log it in `docs/bug-report.md` first, then ask "fix now or hand off?" Do not convert testing feedback directly into a code change. The id of the new entry is the next `BUG-NNN` (solo mode) or your own next `<github-handle>-NNN` (multi mode — see §3.2 and §12).
 
 ### Step 6 — Re-audit
 
@@ -1038,6 +1063,8 @@ In-progress rows MUST have an `assigned:` field. This prevents two developers fr
 
 If a row sits "in progress" for more than a session without commits, the assigned developer either updates the status or releases the row.
 
+**Plan-row ids are shared, not per person** (in both project modes). A row is an assigned chunk of work: its id (`A-05`, `D-02`) is created once by whoever plans the series, and a developer takes it by editing the row (`assigned:`), never by minting a new id. Only finding/bug ids are per person in multi mode — see §12 "Working with several developers".
+
 ---
 
 ## 11. Branching strategy
@@ -1159,6 +1186,55 @@ If two PRs modify the same database migration, that's a process failure — migr
 
 How multiple developers use this framework simultaneously without stepping on each other.
 
+### Working with several developers
+
+*Added in v2.14.0. Solo projects: nothing here changes your behaviour — skip it.*
+
+**Why ids collide.** `BUG-NNN` is one shared counter that lives in a file. Two people (or two Claude sessions) on two branches each read "highest is BUG-014", each write `BUG-015`, and both merge. Git sees two different entries with the same id, or a conflict on the index table; every later reference ("fixed BUG-015") is ambiguous. It is not a discipline problem — any shared counter advanced from parallel branches collides. The fix is to give each person their own counter.
+
+**The rule (multi mode).** Set `mode: multi` in the CLAUDE.md `project-mode` block (§3.2). Then:
+
+- Each person keeps **their own list** in `docs/bug-report.md`, under a header `## List — <github-handle>`.
+- An id is **`<github-handle>-<NNN>`**: the handle, a hyphen, three digits from `001` — e.g. `sivakann25g-001`, `ganmol123-001`.
+- **Your handle** is lowercase and unique within the project. Default: `gh api user --jq .login` (the GitHub account you are working under; GitHub shows handles lowercase). Using GitHub is not mandatory — any unique lowercase name works if you agree it in the Contributors list. A Claude Code session uses the handle of the account it is running under — the same handle as the human whose machine and `gh` login it uses.
+- The same handle prefixes every per-person id type in the table below: bugs `<handle>-NNN`, decisions `<handle>-LD-NNN`, security findings `<handle>-SEC-NNN`, and session-note files `YYYY-MM-DD-<handle>.md`.
+- **Your next id** is the highest number in *your own* list + 1. Never look at anyone else's list to number yours; that is the whole point.
+- Reading is global, writing is local: anyone may read every list (triage, `/audit`), but you only add to, or change the status of entries in, **your own** list. To act on someone else's bug, add a comment to their entry (comments are append-only) and reference the id in your plan row and commit.
+- **Old ids stay as they are.** Existing `BUG-NNN` / `V-NNN` entries are never renumbered or renamed. Put them under a `## List — legacy (BUG-NNN)` header; nobody advances that list any more (new bugs get handle ids). Commits, PRs and docs that cite old ids stay valid.
+
+```markdown
+# Bug report
+
+## List — legacy (BUG-NNN)
+…existing entries, untouched…
+
+## List — sivakann25g
+| ID | Test ID | Summary | Status | Added by | Resolved by |
+|---|---|---|---|---|---|
+| sivakann25g-001 | BAO-04 #3 | Share button missing on mobile | open | Siva | — |
+
+### sivakann25g-001
+…entry in the §19 format…
+
+## List — ganmol123
+…
+```
+
+**Which ids are per person, and which are not**
+
+| Id type | Per person in multi mode? | Owner / rule |
+|---|---|---|
+| Bug / finding ids (`BUG-NNN` → `<handle>-NNN`) | **Yes** | Each person's own list |
+| Plan-row ids (`A-05`, `D-02`) | **No** — shared | Rows are assigned chunks. Created by whoever plans the series; claimed by editing the row (`assigned:`), never re-minted |
+| Locked-decision ids (`LD-NN` → `<handle>-LD-NNN`) | **Yes** | Each person numbers their own decisions (highest `<handle>-LD-` of yours + 1). Old `LD-NN` rows stay. Decisions are still reviewed in the PR like any other change |
+| Security finding ids (`SEC-NNN` → `<handle>-SEC-NNN`) | **Yes** | Same rule as bugs: your own highest + 1. Old `SEC-NNN` stay |
+| DB migration numbers | No | Already serialized: one open migration PR at a time (see "Parallel work rules") |
+| Release / version numbers | No | One release manager per release |
+| Manual-test scenario ids (`BAO-04 #3`, `M-12`) | No | Prefixed by feature series, so they follow the plan row that introduces them |
+| Session-note files (`docs/session-notes/YYYY-MM-DD.md` → `YYYY-MM-DD-<handle>.md`) | **Yes** | Two people finishing a session on the same day would write the same filename; the handle makes it unique. Old files stay. The CLAUDE.md index line links to the new name |
+
+**Switching an existing project to multi mode.** Run `/upgrade` (it offers to set the mode), or edit the block by hand. Add the two list headers to `docs/bug-report.md`. Do not rename anything. `/foundation` and `/upgrade` warn if a multi-mode `bug-report.md` has no `## List —` header.
+
 ### Chunk ownership
 
 Only one developer per plan-row at a time. Claim by editing the plan-row to `🔧 in progress | assigned: [name]` and pushing in a single commit before starting work. If you find yourself wanting to work on a row someone else has assigned, message them — don't duplicate the work.
@@ -1190,6 +1266,7 @@ Each chunk = one PR. PR description template:
 ```markdown
 ## Plan-row
 [A-05] User profile endpoint
+(multi mode: also list bug ids fixed, e.g. `sivakann25g-003`)
 
 ## Design summary
 [3–5 lines: what this builds and why]
@@ -1669,6 +1746,10 @@ Write a new entry referencing the old one, with the new reasoning. Don't silentl
 
 Inline in CLAUDE.md while the list is small (≤10 entries). Spin out to `docs/locked-decisions.md` when it outgrows that.
 
+### Several developers
+
+In multi mode decision ids are per person: `<handle>-LD-NNN` (three digits from `001`, your own highest + 1). Existing `LD-NN` rows stay unchanged. See §12 "Working with several developers".
+
 ---
 
 ## 17. Common gotchas
@@ -1725,6 +1806,7 @@ Pre-collected failure modes that recurred enough to be worth writing down.
 ### Multi-developer
 
 - **Two developers modifying the same plan-row concurrently** creates merge conflicts in `project-log.md`. Claim rows before starting.
+- **Two people taking "the next BUG-NNN" collide.** Switch to `mode: multi` (per-person ids) — see §12 "Working with several developers". Plan-row ids stay shared.
 - **CLAUDE.md conflicts: keep both session notes** — don't pick one and discard the other.
 - **Shared packages need rebuild after changes.** Add "after pulling: `pnpm build`" to `dev-setup-guide.md`.
 - **A developer's local Claude memory is not authoritative.** If a memory says X but CLAUDE.md says Y, CLAUDE.md wins.
@@ -1951,6 +2033,13 @@ Hand off:
 | **fixed** | Developer | Fix merged — awaiting test team re-run |
 | **closed** | Test team | Re-run passed — or bug marked invalid |
 
+### Bug ids by project mode
+
+Read the `project-mode` block in CLAUDE.md (§3.2). Missing block = solo.
+
+- **Solo:** `BUG-NNN`, one shared sequence. Next id = highest `BUG-NNN` in the file + 1. Everything below is written for this mode.
+- **Multi:** `<github-handle>-NNN`, one list per person (`## List — <handle>`). Your handle: `gh api user --jq .login`. Your next id = highest number in **your own** list + 1 (three digits, from `001`). Wherever this section says `BUG-NNN`, read `<handle>-NNN`. Only add to and change entries in your own list; comment on others'. Old `BUG-NNN` entries stay untouched under a legacy header. See §12 "Working with several developers".
+
 ### Bug entry format
 
 Store all bugs in `docs/bug-report.md`. Each bug is an individual entry:
@@ -1977,7 +2066,9 @@ Store all bugs in `docs/bug-report.md`. Each bug is an individual entry:
 **Resolved by:** [name] — [YYYY-MM-DD]
 ```
 
-A quick-summary table at the top of `bug-report.md` gives a one-glance status view:
+(Multi mode: the heading is `### <handle>-NNN` under that person's `## List — <handle>` header, and the **Plan row** field holds the plan-row id, e.g. `D-02`.)
+
+A quick-summary table at the top of `bug-report.md` (multi mode: at the top of each person's list) gives a one-glance status view:
 
 ```markdown
 | ID | Test ID | Summary | Status | Added by | Resolved by |

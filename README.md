@@ -124,6 +124,7 @@ or edge cases — the audit is how you find out if anything needs fixing.
 - Auto-update the skill files in `.claude/commands/`
 - Flag any breaking changes that need manual action
 - Update your installed version record
+- Offer to set `project-mode` (solo / multi) when crossing v2.14.0 — existing ids are never rewritten
 - Prompt you to run `/audit` when done
 
 You can always check what version you have installed:

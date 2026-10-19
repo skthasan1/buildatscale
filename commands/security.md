@@ -158,6 +158,7 @@ Write findings to `docs/security-audit.md`. Each finding:
 
 ```markdown
 ## SEC-NNN
+<!-- multi mode (project-mode block in CLAUDE.md): heading is <handle>-SEC-NNN; next number = highest in your own findings + 1 -->
 
 **Severity:** Critical | High | Medium | Low | Info
 **OWASP:** A01 — Broken Access Control

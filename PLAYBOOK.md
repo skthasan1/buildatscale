@@ -325,7 +325,7 @@ I'm setting up this project for multiple developers. Here's the current state:
 Please help me set up multi-developer conventions:
 1. Review docs/dev-setup-guide.md — is it complete enough that a new developer could get running without asking me anything? Flag any gaps.
 2. Review docs/project-log.md — do the plan-rows have enough detail for someone else to pick them up? Flag any rows that are too vague.
-3. Create docs/onboarding.md (or update if it exists) — a "day one process guide" covering: where decisions live (CLAUDE.md + docs/), how to claim a plan-row, how to start a Claude Code session on this project, branch naming and PR conventions, who reviews what, how to handle merge conflicts on CLAUDE.md.
+3. Create docs/onboarding.md (or update if it exists) — a "day one process guide" covering: where decisions live (CLAUDE.md + docs/), how to claim a plan-row (rows are shared; claim by editing the row), your GitHub handle and — if CLAUDE.md has `mode: multi` — how your own bug ids work (`<handle>-NNN`, FRAMEWORK.md §12), how to start a Claude Code session on this project, branch naming and PR conventions, who reviews what, how to handle merge conflicts on CLAUDE.md.
 4. Add an "Active chunk assignments" section to CLAUDE.md so developers can see who's working on what.
 5. Verify .env.example covers every env var any developer needs for local dev — flag any gaps.
 

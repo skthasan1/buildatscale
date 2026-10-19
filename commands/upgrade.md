@@ -94,6 +94,24 @@ If new directories or files exist in `shared/` that don't exist in the project:
 - List them: "New in this version: shared/ci/github-actions.yml"
 - Ask: "Copy to your project? (y/n)"
 
+### 7b. Project mode (introduced in v2.14.0)
+
+Runs when the upgrade crosses v2.14.0 (installed version < 2.14.0 ≤ new version). Skip otherwise.
+
+1. Read the `project-mode` block in CLAUDE.md. **Never rewrite existing ids** — old `BUG-NNN` / `V-NNN` entries, commits and docs stay exactly as they are, in both modes.
+2. **Block missing** → the project is `solo` and behaves exactly as before. Ask once:
+   "Do several people (or parallel Claude sessions on different branches) log bugs in this project? If yes I'll set `mode: multi` (new bug ids become `<github-handle>-NNN`, one list per person). Otherwise nothing changes."
+   - **No / unsure** → do nothing. (Don't add the block; missing = solo.)
+   - **Yes** → add the `project-mode` block with `mode: multi` to CLAUDE.md (next to `## Contributors`), then do step 4.
+3. **Block present** → report the mode; if `multi`, do step 4.
+4. **One-time check (multi only):** `docs/bug-report.md` must contain a `## List —` header. If it has none, warn — do not edit the file without asking:
+   ```
+   ⚠ Multi mode, but docs/bug-report.md has no per-person list header.
+     Proposed: put existing entries under "## List — legacy (BUG-NNN)" and add
+     "## List — <your-handle>" for new ones. Old ids are not renamed. Apply? (y/n)
+   ```
+5. Mention in the summary: "Behaviour for solo projects is unchanged in v2.14.0."
+
 ### 8. Update the installed version
 
 Write the new version to `.claude/buildatscale-version`:

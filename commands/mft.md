@@ -65,8 +65,13 @@ If a scenario FAILS:
 - Record exactly what happened (what was shown vs what was expected)
 - Note whether it's a UI issue, a data issue, or a logic error
 - Do NOT fix it during this step — just record it
-- **Always log it in `docs/bug-report.md`** — copy the entry template, assign the next BUG-NNN ID,
+- **Always log it in `docs/bug-report.md`** — copy the entry template, assign the next ID,
   fill in test ID, steps, expected, actual, and your name. Update the bug index table.
+  - **Which ID:** read the `project-mode` block in CLAUDE.md (missing = solo).
+    - **solo:** next `BUG-NNN` — highest in the file + 1.
+    - **multi:** your own next `<github-handle>-NNN`. Get the handle from `gh api user --jq .login`
+      (lowercase); the next number is the highest in **your own** `## List — <handle>` + 1
+      (`001` if you have none). Never count other people's lists. Add the entry to your own list.
   This applies regardless of whether you are the developer or a tester — the log is always first.
 
 ### 3. Check for regressions
@@ -112,6 +117,8 @@ performance, copy errors, confusing UX flows. The goal is to experience the feat
 as a user would, not to tick a box.
 
 The bug log (`docs/bug-report.md`) is append-only — never edit another person's lines.
+In multi mode each person owns one list: add and change entries only in your own, and comment on
+other people's entries instead of editing them.
 Add comments with your name and date; let the status and Resolved by fields tell the story.
 
 ### UX consistency scenario

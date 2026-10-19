@@ -10,6 +10,34 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.14.0] — 2026-10-19
+
+> **Solo projects: behaviour is unchanged.** Everything below is opt-in via `mode: multi`. With no `project-mode` block (the default), every skill numbers bugs `BUG-NNN` from one shared sequence exactly as in v2.13.x. No existing id is ever rewritten.
+
+### Added
+
+- **Project mode (`solo` | `multi`) — `shared/FRAMEWORK.md` §3.2:** a `<!--project-mode mode: … -->` block in CLAUDE.md, the same mechanism as the §3.1 budget block (no new config file). Missing block = `solo`. Template gains the block under `## Contributors`.
+- **Per-person bug ids in multi mode:** `<github-handle>-NNN` (three digits from `001`, handle from `gh api user --jq .login`), one `## List — <handle>` per person in `docs/bug-report.md`; next id = highest in your own list + 1. Motivated by repeated id collisions on a 4-developer project (two branches took the same next `BUG-NNN`).
+- **`FRAMEWORK.md` §12 "Working with several developers":** why ids collide, handle format, reading-is-global / writing-is-local rule, old ids stay (legacy list), table of which ids are per person vs shared, how to switch an existing project.
+- **`/upgrade` Step 7b:** when crossing v2.14.0, offers to set the mode, leaves old ids untouched, and runs a one-time check that warns if a multi-mode `bug-report.md` has no `## List —` header.
+
+### Changed
+
+- **`/mft`** Step 2 (next-id rule is mode-aware; multi counts only your own list), Notes (own-list-only edits).
+- **`/security`** (finding heading) and **`/wrap`** (session-note filename) are mode-aware.
+- **`/audit`** Point 10 bug-log check reads every list in multi mode; edits only own list.
+- **`/foundation`** `docs/bug-report.md` check warns on multi mode without a per-person header.
+- **`/scaffold`** Step 1c (Team) prompts for the mode when more than one person logs bugs.
+- **`FRAMEWORK.md`** §5 Step 5 (conversational feedback id), §10 (plan-row ids are shared, claimed by editing the row), §12 PR template, §16 (`LD-NN` note), §17 gotchas, §19 (bug ids by mode; entry format and summary table per list). `PLAYBOOK.md` onboarding step and `README.md` upgrade summary updated.
+
+- **Other per-person ids in multi mode:** decisions `<handle>-LD-NNN`, security findings `<handle>-SEC-NNN`, session-note files `YYYY-MM-DD-<handle>.md`. Handles are lowercase; GitHub login by default, any unique name allowed. `/security` and `/wrap` are mode-aware.
+
+### Not changed — shared by design
+
+Plan-row ids (shared, claimed by editing the row), migration numbers (already serialized), release numbers (release manager), manual-test scenario ids (follow their plan row).
+
+---
+
 ## [2.13.1] — 2026-10-03
 
 ### Fixed
