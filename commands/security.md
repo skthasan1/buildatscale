@@ -3,7 +3,9 @@
 Two modes triggered by the same skill:
 
 1. **Targeted** (`/security <chunk-id>`) — called automatically from the pipeline (Step 3.5) when `/impact` flagged the change as security-relevant. Reviews the changed surface only. Findings block the pipeline like an audit FAIL.
-2. **Full** (`/security`) — periodic full-surface sweep. Run quarterly or before any major release. Produces `docs/security-audit.md`.
+2. **Full** (`/security`) — periodic full-surface sweep of the integration branch. Run weekly for active repos (see Cadence) and before any major release. Produces `docs/security-audit.md` and `docs/security-audit.json`.
+
+**Standing rule — secrets:** never print a found secret value in any report, issue or chat. Give file, line and type only, and tell the owner to rotate it. Never open `.env*` files.
 
 ## When the pipeline triggers targeted mode
 
@@ -22,6 +24,17 @@ If the impact flag was **no**: skip Step 3.5 entirely. Do not run `/security` on
 
 ---
 
+## Full mode: required steps
+
+Do these first; targeted mode skips them.
+
+1. **Right branch.** Audit the integration branch (`origin/develop`, `origin/dev` or the project's equivalent), not a feature branch. Name the commit audited.
+2. **History scan.** Scan the full git history for secrets (`gitleaks detect`). A secret removed from HEAD is still leaked. Report file, line and type only.
+3. **Complete checklist.** Report every row of the checklist (A01–A10 below, plus secrets and CI, AI/LLM risks, client or mobile, logging). A row you did not examine is marked `N/A` with a reason; a row left out is a gap in the audit.
+4. **Dependencies as data.** Run the package audit and record counts by severity in the audit.
+
+---
+
 ## What to do
 
 ### 1. Threat model
@@ -37,7 +50,7 @@ If the threat model surfaces no plausible attack paths: state that explicitly an
 
 ### 2. OWASP Top 10 sweep
 
-**Stack adaptation:** the terminology below uses tRPC/Next.js/Prisma names as defaults. Adapt to your project's actual access control model. To do this once rather than per-review, add a **Security surface map** section to `CLAUDE.md`:
+**Stack adaptation:** the terminology below uses tRPC/Next.js/Prisma names only as examples. Put your stack's words (guards, roles, ORM, auth provider) in a **Security surface map** section in `CLAUDE.md` once, and read every check below in those terms:
 
 ```
 ## Security surface map
@@ -165,13 +178,20 @@ Write findings to `docs/security-audit.md`. Each finding:
 **Surface:** `photos.getFullUrl` — tRPC procedure
 **Finding:** Creator A can request a signed URL for Creator B's FULL photo by passing the photo ID directly.
 **Evidence:** `apps/api/src/trpc/routers/photos.ts:142` — no `photo.creatorId === ctx.userId` check
-**Reachability:** Verified — direct API call with wrong creatorId confirmed 200 response | Unverified — [reason: couldn't test in this environment]
+**Reachability:** Verified | Verified in code | Unverified, treated as present — [what you looked for]
+**Key:** `access-photos-getfullurl-idor` (stable slug: problem class + place; the same key in every later audit, so a trend can be kept)
+**First seen:** 2026-10-26 (audit date, or the commit)
+**Owner:** code owner of the file (handle)
 **Fix:** Add ownership check before generating the signed URL; ADMIN bypass allowed.
-**Status:** open | fixed | accepted-risk
+**Status:** new | open | fixed | accepted-risk
 **Plan row:** SEC-NNN (link to project-log.md row when assigned)
 ```
 
-**Reachability rule:** unverified findings are capped at **Medium** severity. Do not file a Critical or High finding without reachability evidence — "I can see the missing check in the code" is evidence of a gap, but not that the gap is exploitable from outside. Unverified High-severity candidates should be marked Medium with a note to verify before escalating.
+**Reachability and severity.** Rate severity as if any control that cannot be verified from the code, configuration or documents does not exist. Do not lower a severity because an attack seems unlikely or because "it is probably handled elsewhere". Record how the finding is known in `Reachability`: `Verified` (a live call or test showed it), `Verified in code` (the missing check is visible and no other check on the path exists), or `Unverified, treated as present` (a control we cannot see might exist; say what you looked for). A project that tests its own live system may set a stricter evidence bar in its CLAUDE.md ("Security posture: evidence-capped"); then unverified Critical and High candidates are filed as Medium with a note to verify before escalating.
+
+**Machine-readable copy.** Write the same audit as `docs/security-audit.json` next to the markdown: audit date, commit, one entry per finding (`id`, `key`, `severity`, `owasp`, `reachability`, `status`, `owner`, `file`, `line`), the checklist rows with their `na` reasons, and dependency counts by severity. The markdown is the human view; the JSON lets a project keep a trend and validate the audit in CI.
+
+**Findings become work.** File one issue per finding at Medium or above, assigned to the code owner. An issue is closed only after the next audit confirms the fix in the code.
 
 Severity guide:
 - **Critical** — unauthenticated access to private data, RCE, payment bypass
@@ -187,5 +207,9 @@ Severity guide:
 | Mode | When |
 |---|---|
 | Targeted | Every pipeline run where `/impact` reports security flag = yes |
-| Full | Quarterly, or before any public launch / major feature release |
+| Full | Weekly for active repos; monthly for stable ones; quarterly for dormant ones; and before any public launch or major release |
 | Ad hoc | Any time a user reports unexpected access to data that shouldn't be accessible |
+
+## Compliance readiness
+
+For a product with customers, `/security` is not the whole story. Follow it with a readiness review for the regimes that apply (SOC 2, privacy law such as GDPR, e-signature rules). This is engineering readiness, not legal advice; keep its output beside the security audit.

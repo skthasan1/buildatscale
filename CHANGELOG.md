@@ -10,6 +10,25 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.15.0] — 2026-10-26
+
+> **Skill update only.** No pipeline step is added, removed or renamed. Targeted `/security` runs as before; the changes below mostly apply to full mode.
+
+### Changed
+
+- **`/security` reachability rule replaced.** Severity is now rated as if a control that cannot be verified does not exist. `Reachability` records how sure the finding is (`Verified`, `Verified in code`, `Unverified, treated as present`) and never lowers severity. The old "unverified findings are capped at Medium" rule stays available as an opt-in (`Security posture: evidence-capped` in CLAUDE.md) for projects that test their live system.
+- **Finding template** gains `Key` (stable slug for trend), `First seen`, `Owner`; status words are `new | open | fixed | accepted-risk`.
+- **Cadence:** full mode weekly for active repos (monthly stable, quarterly dormant) instead of quarterly.
+- **Stack words** (tRPC, Prisma, Privy) are examples only; the Security surface map in CLAUDE.md carries the project's own terms.
+
+### Added
+
+- **Full mode required steps:** audit the integration branch and name the commit; scan git history for secrets (`gitleaks`); report every checklist row with `N/A` plus a reason; record dependency counts by severity.
+- **Machine-readable audit** `docs/security-audit.json` next to the markdown, so a project can keep a trend and validate in CI.
+- **Findings become work:** one issue per Medium-or-above finding, assigned to the code owner, closed only after the next audit confirms the fix in code.
+- **Secret handling rule:** never print a found secret value; file, line and type only; tell the owner to rotate.
+- **Compliance pointer:** a readiness review (SOC 2, privacy, e-signature) for products with customers; engineering readiness, not legal advice.
+
 ## [2.14.0] — 2026-10-19
 
 > **Solo projects: behaviour is unchanged.** Everything below is opt-in via `mode: multi`. With no `project-mode` block (the default), every skill numbers bugs `BUG-NNN` from one shared sequence exactly as in v2.13.x. No existing id is ever rewritten.
