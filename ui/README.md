@@ -17,7 +17,7 @@ It is not a theme. It ships no colours, fonts or logos. Each project keeps its o
 | [MOBILE.md](MOBILE.md) | React Native / Expo, or porting a web pattern to native. |
 | [LANDING.md](LANDING.md) | Marketing and landing pages. |
 | [templates/ux-patterns.md](templates/ux-patterns.md) | Creating a project's `docs/ux-patterns.md` (de-branded, placeholders, defaults only). |
-| [scripts/contrast.mjs](scripts/contrast.mjs) | Computing WCAG contrast for colour pairs or a stylesheet's tokens. Exits 1 on a miss. |
+| [scripts/contrast.mjs](scripts/contrast.mjs) | Computing WCAG contrast for colour pairs or a stylesheet's tokens. Exits 1 on a miss. Top-level blocks only; `--media` reads a dark theme nested in `@media`. Test: `node --test shared/ui/scripts/contrast.test.mjs`. |
 
 ## How a project uses it
 

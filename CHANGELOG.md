@@ -10,6 +10,14 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.16.1] — 2026-10-30
+
+### Fixed
+
+- 2.16.1: `contrast.mjs` reads top-level blocks only and has `--media`; fixes the dark-in-@media case. A dark theme declared as `@media (prefers-color-scheme: dark) { :root { ... } }` no longer overrides the light values (light was never checked); `--media "(prefers-color-scheme: dark)"` reads the nested block explicitly. Added `ui/scripts/contrast.test.mjs` (node:test). Raised by Kairo, issue #29.
+
+---
+
 ## [2.16.0] — 2026-10-29
 
 > **UI house style: a default for projects with a UI surface, overridable.** Projects with no UI surface are unchanged (Point 11 stays skipped). Solo and multi mode are unchanged. No pipeline step is added, removed or renamed. The pack is product-neutral and is read in place from `shared/ui/`; nothing is copied into `.claude/`.

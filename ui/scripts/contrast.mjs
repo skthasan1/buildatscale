@@ -9,10 +9,14 @@
    Token mode (reads --name: value; from each selector block of a stylesheet, resolves var()):
      node contrast.mjs --css src/app/globals.css --selector ":root" --selector ".dark" \
        foreground:background muted-foreground:card accent-foreground:accent
+     Only TOP-LEVEL blocks are read; blocks nested in @media/@supports/@layer are ignored. For a dark theme declared as
+     @media (prefers-color-scheme: dark) { :root { ... } }, add --media to overlay that query's blocks on the top-level values:
+       node contrast.mjs --css src/app/globals.css --selector ":root" --media "(prefers-color-scheme: dark)" foreground:background
      Add =3 to a pair to hold it to 3:1 instead of 4.5:1 (rings, icons, large text):
        ring:background=3
    Exit code 1 when any pair misses its floor, so it can sit in a gate. */
 import { readFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 
 const toLinear = (c) => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
 
@@ -74,16 +78,56 @@ const ratio = (a, b) => {
   return (hi + 0.05) / (lo + 0.05);
 };
 
-function tokenBlocks(css, selectors) {
-  const read = (selector) => {
-    const out = {};
-    const re = new RegExp(`(^|[\\s,}])${selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*\\{([^}]*)\\}`, "g");
-    for (const block of css.matchAll(re))
-      for (const d of block[2].matchAll(/--([\w-]+)\s*:\s*([^;]+);/g)) out[d[1]] = d[2].trim();
-    return out;
-  };
-  const base = read(selectors[0]);
-  return selectors.map((s, i) => ({ selector: s, tokens: i === 0 ? base : { ...base, ...read(s) } }));
+/* Splits CSS into its blocks at one nesting level: { prelude, body }. Comments are dropped first. */
+function splitBlocks(css) {
+  const src = css.replace(/\/\*[\s\S]*?\*\//g, "");
+  const out = [];
+  let i = 0;
+  while (i < src.length) {
+    const open = src.indexOf("{", i);
+    if (open < 0) break;
+    const start = Math.max(i, src.lastIndexOf(";", open) + 1, src.lastIndexOf("}", open) + 1);
+    let depth = 1;
+    let j = open + 1;
+    for (; j < src.length && depth; j++) depth += src[j] === "{" ? 1 : src[j] === "}" ? -1 : 0;
+    out.push({ prelude: src.slice(start, open).trim().replace(/\s+/g, " "), body: src.slice(open + 1, j - 1) });
+    i = j;
+  }
+  return out;
+}
+
+const declarations = (body) => {
+  const out = {};
+  let own = body;
+  for (let prev; prev !== own; ) (prev = own), (own = own.replace(/\{[^{}]*\}/g, "")); /* drop nested rules */
+  for (const d of own.matchAll(/--([\w-]+)\s*:\s*([^;]+);?/g)) out[d[1]] = d[2].trim();
+  return out;
+};
+
+/* Reads the tokens of one selector. Only TOP-LEVEL blocks count (later ones win); blocks nested in @media, @supports,
+   @layer or @container are ignored unless `media` names an @media query, whose nested blocks are overlaid on top. */
+function readSelector(css, selector, media) {
+  const matches = (prelude) => prelude.split(",").some((p) => p.trim() === selector);
+  const norm = (m) => m.replace(/\s+/g, " ").replace(/\s*:\s*/g, ":").replace(/\(\s+/g, "(").replace(/\s+\)/g, ")").trim().toLowerCase();
+  const blocks = splitBlocks(css);
+  const out = {};
+  for (const b of blocks) if (!b.prelude.startsWith("@") && matches(b.prelude)) Object.assign(out, declarations(b.body));
+  if (media) {
+    const want = norm(media);
+    for (const b of blocks) {
+      if (!/^@media\b/i.test(b.prelude) || norm(b.prelude.replace(/^@media\s*/i, "")) !== want) continue;
+      for (const inner of splitBlocks(b.body)) if (matches(inner.prelude)) Object.assign(out, declarations(inner.body));
+    }
+  }
+  return out;
+}
+
+export function tokenBlocks(css, selectors, media) {
+  const base = readSelector(css, selectors[0], media);
+  return selectors.map((s, i) => ({
+    selector: media ? s + " @media " + media : s,
+    tokens: i === 0 ? base : { ...base, ...readSelector(css, s, media) },
+  }));
 }
 
 function resolve(tokens, name, depth = 0) {
@@ -109,19 +153,24 @@ function report(label, fgRaw, bgRaw, floor) {
   return pass;
 }
 
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) main();
+
+function main() {
 const args = process.argv.slice(2);
 let ok = true;
 if (args[0] === "--css") {
   const cssPath = args[1];
   const selectors = [];
   const pairs = [];
+  let media;
   for (let i = 2; i < args.length; i++) {
     if (args[i] === "--selector") selectors.push(args[++i]);
+    else if (args[i] === "--media") media = args[++i];
     else pairs.push(args[i]);
   }
   if (!selectors.length) selectors.push(":root");
   const css = readFileSync(cssPath, "utf8");
-  for (const { selector, tokens } of tokenBlocks(css, selectors)) {
+  for (const { selector, tokens } of tokenBlocks(css, selectors, media)) {
     console.log(selector);
     for (const pair of pairs) {
       const [names, f] = pair.split("=");
@@ -138,7 +187,8 @@ if (args[0] === "--css") {
 } else if (args.length >= 2 && args.length % 2 === 0) {
   for (let i = 0; i < args.length; i += 2) ok = report(`${args[i]} on ${args[i + 1]}`, args[i], args[i + 1], 4.5) && ok;
 } else {
-  console.log('Usage: node contrast.mjs <fg> <bg> [<fg> <bg> ...]\n       node contrast.mjs --css <file> [--selector ":root"] [--selector ".dark"] fg:bg[=3] ...');
+  console.log('Usage: node contrast.mjs <fg> <bg> [<fg> <bg> ...]\n       node contrast.mjs --css <file> [--selector ":root"] [--selector ".dark"] [--media "(prefers-color-scheme: dark)"] fg:bg[=3] ...');
   process.exit(2);
 }
 process.exit(ok ? 0 : 1);
+}

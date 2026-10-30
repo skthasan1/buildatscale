@@ -44,6 +44,8 @@ node shared/ui/scripts/contrast.mjs --css src/app/globals.css --selector ":root"
   foreground:background muted-foreground:card accent-foreground:accent ring:background=3
 ```
 
+Only top-level blocks of a selector are read. If the dark theme is `@media (prefers-color-scheme: dark) { :root { ... } }`, run it twice: once as above for light, once with `--media "(prefers-color-scheme: dark)"` for dark (the nested values overlay the top-level ones).
+
 It reads hex, `rgb()`, `hsl()`, bare HSL triplets and `oklch()`, resolving `var()` chains, and exits 1 on a miss so it can sit in a gate. It flags `color-mix()` and translucent colours as "measure the composited colour", because their ratio depends on what is under them. For those, read the rendered colour in the browser (`getComputedStyle`) and use pair mode.
 
 Common failures on white: a light grey (zinc-400, about 2.6:1) for muted text; amber-600 (about 3.2:1) for warnings; white text on a mid-tone accent fill. Check them first.
