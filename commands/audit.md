@@ -155,6 +155,21 @@ Check the diff for:
 
 5. **Reuse check** — does the new UI introduce a pattern that already exists in `docs/ux-patterns.md`? (A new custom modal when the shared Dialog is already approved; a one-off toast instead of `sonner`.) If a new pattern was intentionally introduced, was `docs/ux-patterns.md` updated to document it? New pattern without a doc update = FAIL.
 
+**House additions (default for projects with a UI surface).** After the five checks, run the ten house checks in `shared/ui/VERIFICATION.md` section 6 and mark each **PASS, FAIL or N/A with file and line**:
+
+H1. **Accent rationing** — accent only on active, focus, AI and "yours"; at most one accent fill per view; status colour carries a word or icon; outline buttons do not hover in the accent.
+H2. **Boxes vs hairlines** — no card in a card, no stat/count tiles, no uniform card grid where a list would do, no extra shadow tiers, no glass without a wash.
+H3. **Subtraction** — nothing repeats the page, no do-nothing control, no count at rest, no explainer where a control will do.
+H4. **Type** — faces from tokens, tabular numerals on scanned figures, uppercase only via the eyebrow utility, balanced headings.
+H5. **Geometry** — concentric radii, matched insets, container queries in the main area, shared gutters, 44px phone targets, no sideways scroll.
+H6. **Motion** — the project's ease and springs, no bounce/lift/overshoot/looping text, static first paint, a reduced-motion still state, paused off screen.
+H7. **Copy** — sentence case, verb-phrase buttons, progressive busy labels, real dates, no exclamation marks, no new em dashes, one name per thing, nothing claims what is not wired.
+H8. **Contrast computed** — numbers recorded (`shared/ui/scripts/contrast.mjs`) for new text-on-surface pairs in both themes, muted text included.
+H9. **Tells list** — `shared/ui/PRINCIPLES.md` section 3 checked, plus the project's "Removed on purpose" table.
+H10. **Captures attached** — at the project's acceptance sizes, light and dark, before and after.
+
+**Project override rule:** if `docs/ux-patterns.md` overrides a house rule **with a written reason**, check against the project's rule instead. An override without a reason is a FAIL. Point 11 stays skipped (N/A, "no UI surface") when `/impact` reported `UI surface: no`.
+
 ---
 
 ## Output format
@@ -172,7 +187,7 @@ Point 7  Dev instructions: PASS / FAIL — [reason]
 Point 8  Test coverage:    PASS / FAIL — [reason]
 Point 9  Test execution:   PASS — [X passed, Y failed]
 Point 10 Cross-doc sync:   PASS / FAIL — [reason]
-Point 11 UX consistency:   PASS / FAIL / N/A — [reason or "no UI surface"]
+Point 11 UX consistency:   PASS / FAIL / N/A — [reason or "no UI surface"; checks 1–5 and H1–H10 each PASS/FAIL/N/A with file:line]
 
 Items to fix:
 - [list of FAILs with specific files/lines]

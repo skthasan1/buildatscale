@@ -43,6 +43,10 @@ For every function/endpoint/component you write:
 Test-alongside rule: the test file should grow at roughly the same rate as the
 implementation file. If you've written 5 functions and 0 tests, stop and write tests.
 
+### 2b. UI changes (only if `/impact` reported `UI surface: yes`)
+
+Build to `docs/ux-patterns.md` and `shared/ui/PRINCIPLES.md`: tokens only (no raw hex), the shared component kit, both themes, a reduced-motion state for every animation, 44px touch targets on phones. Add taste-guard tests for rules that a rebase could silently undo (see `shared/ui/VERIFICATION.md`).
+
 ### 3. Scope discipline
 
 Stay scoped to the plan-row. If you discover an adjacent issue:

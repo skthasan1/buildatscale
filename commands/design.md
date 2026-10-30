@@ -32,6 +32,8 @@ Option 1 — [name]
 **2. Add a recommendation.** One sentence: "I recommend Option N because [reason]."
 This is your opinion — the user makes the final call.
 
+**UI changes (when `/impact` reported `UI surface: yes`).** Follow `shared/ui/PRINCIPLES.md`: present the options as **rendered variants**, not prose. Build two or three real variants in the same state at the same widths, attach the captures, and make the recommendation cite the principle or the "cheap / generated" tell it rests on. Do not re-propose anything in the project's "Removed on purpose" table. A project may override a house rule in its `docs/ux-patterns.md` with a written reason.
+
 **3. Wait for approval.** Do not write any code or update any docs until the user
 explicitly selects an option (or gives a different direction). 
 

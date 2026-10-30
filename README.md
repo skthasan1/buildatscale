@@ -124,6 +124,7 @@ or edge cases — the audit is how you find out if anything needs fixing.
 - Auto-update the skill files in `.claude/commands/`
 - Flag any breaking changes that need manual action
 - Update your installed version record
+- Explain the UI house style (v2.16.0) and offer a `Project overrides` section in `docs/ux-patterns.md`; nothing is overwritten
 - Offer to set `project-mode` (solo / multi) when crossing v2.14.0 — existing ids are never rewritten
 - Prompt you to run `/audit` when done
 
@@ -237,6 +238,7 @@ Instead of `/pipeline` (guided), run individual steps:
 | `VERSION` | Current version string — copied to `.claude/buildatscale-version` on install |
 | `commands/*.md` | Source for all 11 slash commands — copy to `.claude/commands/` to activate |
 | `settings-template.json` | Default permission allowlist — stops Claude prompting for read-only ops |
+| `ui/` | UI house style — default for projects with a UI surface, overridable per project: principles, motion, copy, mobile, landing, verification gate, `docs/ux-patterns.md` template and a contrast checker. Start at `ui/README.md`. Read in place; nothing to copy. |
 | `ci/github-actions.yml` | Starter CI — typecheck + lint + tests + build + secrets guard. Copy to `.github/workflows/ci.yml` and customise the marked sections. |
 
 ### Keep the methodology, swap the tools

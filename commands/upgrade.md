@@ -94,6 +94,15 @@ If new directories or files exist in `shared/` that don't exist in the project:
 - List them: "New in this version: shared/ci/github-actions.yml"
 - Ask: "Copy to your project? (y/n)"
 
+### 7a. UI house style (introduced in v2.16.0)
+
+Runs when the upgrade crosses v2.16.0. Skip otherwise, and skip entirely for projects with no UI surface.
+
+- The pack lives in `shared/ui/` and is read in place by the pipeline commands. **Nothing is copied** to `.claude/`; step 5's `cp shared/commands/*.md` already brings the updated commands.
+- If the project has a UI surface and `docs/ux-patterns.md` exists, do not overwrite it. Offer: "The UI house style is now the default. Add a `Project overrides` section (see `shared/ui/templates/ux-patterns.md`) for any rule this project deliberately does not follow, with a reason?"
+- If the file is missing, offer to create it from `shared/ui/templates/ux-patterns.md`.
+- Mention in the summary: "Projects with no UI surface, and solo/multi mode, are unchanged in v2.16.0."
+
 ### 7b. Project mode (introduced in v2.14.0)
 
 Runs when the upgrade crosses v2.14.0 (installed version < 2.14.0 ≤ new version). Skip otherwise.

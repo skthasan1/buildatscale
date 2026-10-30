@@ -15,7 +15,7 @@
 2. Session 0 bootstrap checklist
 3. CLAUDE.md template
 4. Memory system setup
-5. Documentation hierarchy
+5. Documentation hierarchy (includes the UI house style)
 6. The 8-step chunk pipeline (Steps 0–7)
 7. Impact analysis (blast-radius checklist)
 8. Audit checklist (10 points)
@@ -432,6 +432,8 @@ Three tiers, depth scales with project maturity.
 
 #### docs/ux-patterns.md — starter template
 
+> **Richer template available (v2.16.0).** For a project with a real UI surface, start from `shared/ui/templates/ux-patterns.md` instead: the same sections plus a `Project overrides` table, an archetype and metaphor, a fuller token table, approved patterns (empty, loading, error, undo, toast, motion, copy), anti-patterns and a `Removed on purpose` table. The short starter below is the minimum.
+
 Copy and fill in every section. Replace `[PLACEHOLDER]` values with your product's actual tokens.
 
 ```markdown
@@ -545,6 +547,14 @@ These are explicitly not allowed. Flag in `/audit` Point 11 if found:
 
 All new UI must render correctly at 375px without horizontal scroll.
 ```
+
+### UI house style (default for projects with a UI surface; overridable)
+
+`shared/ui/` is a product-neutral UI/UX pack: ten principles, a "cheap / generated" tells list, how to read terse design feedback, motion, copy, mobile and landing-page guidance, a verification gate (both themes, acceptance sizes, computed contrast, probes that act, taste-guard tests) and `scripts/contrast.mjs`. Start at `shared/ui/README.md`.
+
+- **Default, not law.** It applies to every project with a UI surface (`/impact` Q9 = yes). A project may override any rule in its own `docs/ux-patterns.md` under `Project overrides`, with a written reason. An override without a reason is an `/audit` Point 11 FAIL. Projects with no UI surface never read it.
+- **Pipeline hooks.** `/impact` Q9 (closest precedent, removed-on-purpose items), `/design` (rendered variants, recommendation cites a principle or tell), `/docsup` (update `docs/ux-patterns.md`, design note with before/after values), `/build` (tokens, shared kit, both themes, reduced motion, 44px targets), `/audit` Point 11 (the five checks plus ten house additions H1 to H10), `/mft` (captures in light and dark, keyboard pass, hit-tests).
+- **Precedence when sources disagree** (highest first): (1) the project's own design contract and its tests; (2) recorded decisions (locked decisions, "Removed on purpose"); (3) the framework UI pack; (4) generic UI skills. **Team process rules always bind** above all four: PR size caps, review rules, locked decisions, commit rules. Taste never overrides process.
 
 ### Tier 2 — Before feature (per chunk)
 
@@ -852,6 +862,8 @@ Any fix that touches search, fuzzy-matching, text extraction, or LLM classificat
 5. **Pattern check** — does the new UI match the approved pattern for its category in `docs/ux-patterns.md`? (modal = confirmation modal pattern, toast = toast pattern, etc.)
 
 Mark this `[UX: visual/interaction check]` in `docs/manual-test.md` — it requires a human, not just a functional assertion.
+
+For projects using the UI house style (§5), the UX scenario also includes captures at the acceptance sizes in light and dark, a keyboard pass with Escape and focus return, hit-tests on layered UI, and a reduced-motion check (`shared/ui/VERIFICATION.md`).
 
 **Repeat-mechanism escalation rule** — if a second bug sharing the identical root-cause mechanism (same extractor pattern, same matching logic, same flow) is found within the same session, stop and grep for every other site sharing that mechanism before continuing. Patch the cluster once, not one instance at a time as each is separately discovered by testing.
 

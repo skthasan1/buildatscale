@@ -155,7 +155,7 @@ Check that Tier 1 docs exist (from `shared/FRAMEWORK.md` Section 5):
 | `docs/bug-report.md` | Must exist (even if empty) — the test team's bug log. If CLAUDE.md has `mode: multi` in its `project-mode` block, it must also contain at least one `## List — <handle>` header; if not, WARN: "multi mode but bug-report.md has no per-person list header — see FRAMEWORK.md §12" |
 | `docs/ux-patterns.md` | Must exist — color tokens, typography, component inventory, approved patterns, anti-patterns |
 
-If `docs/ux-patterns.md` is missing: FAIL. Create it immediately from the starter template in `shared/FRAMEWORK.md §5` (search for "docs/ux-patterns.md — starter template"). Fill in the [PLACEHOLDER] values for your product's actual tokens and component paths before any UI code is written. An empty template still counts as PASS — the file must exist as the contract; it grows as the product's design language is established.
+If `docs/ux-patterns.md` is missing: FAIL. Create it immediately from `shared/ui/templates/ux-patterns.md` (the fuller template with the UI house-style defaults; the short starter in `shared/FRAMEWORK.md §5` is the minimum). Fill in the [PLACEHOLDER] values for your product's actual tokens and component paths before any UI code is written. An empty template still counts as PASS — the file must exist as the contract; it grows as the product's design language is established.
 
 Also check: if a new service, env var, or infrastructure decision was added this session,
 is it reflected in `CLAUDE.md` and the relevant docs?

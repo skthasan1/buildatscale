@@ -133,6 +133,13 @@ Run each sub-check with a browser open:
 4. **Responsive check** — resize browser to 375px width. No horizontal scroll, no clipped text, no overlapping elements.
 5. **Pattern check** — open `docs/ux-patterns.md`. Does the new UI match the approved pattern for its category (modal, toast, empty state, form, confirmation)? If a new pattern was introduced, is it documented?
 
+**House additions (default for projects with a UI surface; see `shared/ui/VERIFICATION.md`):**
+
+6. **Captures** — screenshot the changed UI at the project's acceptance sizes (default 1280×720 and 390×844) in **light and dark**; attach them to the scenario notes.
+7. **Keyboard pass** — Tab order is logical, focus ring visible on every stop, Escape closes dialogs and menus and returns focus to the trigger.
+8. **Hit-tests on layered UI** — for overlays, pinned scenes, stacked stages and menus, click the control (or `document.elementFromPoint` at its centre) and confirm it is the control that answers, not a layer above it.
+9. **Reduced motion** — with the OS setting (or emulation) on, the still state shows and nothing blocks content.
+
 If any sub-check fails: log it as a FAIL in `docs/bug-report.md` with sub-check number and exact observation, then ask "fix now or hand off?"
 
 ### Interaction-class bugs

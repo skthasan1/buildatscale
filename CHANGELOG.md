@@ -10,6 +10,23 @@ Versions follow [Semantic Versioning](https://semver.org).
 
 ---
 
+## [2.16.0] — 2026-10-29
+
+> **UI house style: a default for projects with a UI surface, overridable.** Projects with no UI surface are unchanged (Point 11 stays skipped). Solo and multi mode are unchanged. No pipeline step is added, removed or renamed. The pack is product-neutral and is read in place from `shared/ui/`; nothing is copied into `.claude/`.
+
+### Added
+
+- **`shared/ui/`** — a UI/UX house-style pack: `README.md` (what is read when), `PRINCIPLES.md` (precedence, ten principles with their "why", the "cheap / generated" tells, a verdict-to-action table for terse design feedback, the any-UI-task workflow, the pipeline integration table, three neutral starting archetypes), `MOTION.md`, `COPY.md`, `MOBILE.md` (React Native / Expo), `LANDING.md`, `VERIFICATION.md` (gate, acceptance sizes, computed contrast, probes that act, taste-guard tests as source-scanning tests, the ten Point 11 house additions H1 to H10, performance proof recipe, traps), `templates/ux-patterns.md` and `scripts/contrast.mjs` (WCAG ratios for pairs or a stylesheet's tokens; exits 1 on a miss).
+- **`docs/ux-patterns.md` template** with a `Project overrides` table, an archetype and metaphor, approved patterns and a `Removed on purpose` table.
+- **FRAMEWORK.md §5 "UI house style"** subsection with the precedence order: the project's own design contract and tests, recorded decisions, the framework UI pack, generic UI skills. Team process rules (size caps, review rules, locked decisions) always bind.
+- **Project override rule:** any house rule may be overridden in the project's `docs/ux-patterns.md` with a written reason; an override without a reason is a Point 11 FAIL.
+- **`/upgrade` Step 7a:** explains the pack, offers a `Project overrides` section, never overwrites an existing `docs/ux-patterns.md`.
+
+### Changed
+
+- **`/impact`** Q9 adds the removed-on-purpose check; **`/design`** UI options are rendered variants with captures and the recommendation cites a principle or tell; **`/docsup`** updates `docs/ux-patterns.md` (new Step 2b, design note with before/after values); **`/build`** UI rules (Step 2b: tokens, shared kit, both themes, reduced motion, 44px targets); **`/audit`** Point 11 keeps its five checks and adds the ten house additions, each PASS/FAIL/N/A with file and line; **`/mft`** UX scenario adds captures in light and dark, a keyboard pass, hit-tests on layered UI and a reduced-motion check; **`/foundation`** points to the new template.
+- **FRAMEWORK.md** §5 (template pointer, table of contents) and §9 (UX scenario pointer).
+
 ## [2.15.0] — 2026-10-26
 
 > **Skill update only.** No pipeline step is added, removed or renamed. Targeted `/security` runs as before; the changes below mostly apply to full mode.

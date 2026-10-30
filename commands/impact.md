@@ -34,7 +34,7 @@ Spawn a search agent if the codebase is large:
 | 6 | **Adjacent code risk** — What else lives in the same file or execution path? List it. |
 | 7 | **Deployment/infra** — Deploy sequence constraints? New env vars? Infrastructure changes? Also: what **actually invokes** this in the deployed environment — cron schedule, incoming webhook, user action, background queue job? Logic without wiring is unreachable code in production. Verify the invocation path exists, not just that the logic is correct. |
 | 8 | **Security surface** — Does this change touch a trust boundary? Answer yes/no, then list which apply: new or modified auth guard; new public endpoint; payment or payout flow; schema change to user/session/permission/invite tables; new PII or credential field; new external HTTP call (SSRF risk); new file upload or download path; new admin capability. A "yes" triggers `/security` as Step 3.5 in the pipeline. |
-| 9 | **UI surface** — Does this change add or modify any UI? Answer yes/no. If yes: (a) which existing component in `docs/ux-patterns.md` is the closest precedent? (b) is this reusing an existing component or introducing a new pattern? If a new pattern: state why the existing ones don't cover this case. A "yes" triggers the UX scenario in `/mft` and Point 11 in `/audit`. |
+| 9 | **UI surface** — Does this change add or modify any UI? Answer yes/no. If yes: (a) which existing component in `docs/ux-patterns.md` is the closest precedent? (b) is this reusing an existing component or introducing a new pattern? If a new pattern: state why the existing ones don't cover this case. (c) does the change touch anything listed under "Removed on purpose" in `docs/ux-patterns.md`? A "yes" triggers the UX scenario in `/mft` and Point 11 in `/audit`, and the UI house style (`shared/ui/PRINCIPLES.md`) applies by default. |
 
 **3. Output the standardized block:**
 
@@ -49,7 +49,7 @@ Test surface:      <list tests to update, or "none">
 Adjacent risk:     <list adjacent code in same path, or "none">
 Deployment/infra:  affected / not affected — <migrations, env vars, infra>
 Security surface:  yes / no — <trust boundaries touched>
-UI surface:        yes / no — <closest existing component | new pattern + reason>
+UI surface:        yes / no — <closest existing component | new pattern + reason | removed-on-purpose items touched>
 ```
 
 **4. List design gaps** — questions you couldn't answer from the codebase (missing docs,

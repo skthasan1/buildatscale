@@ -31,6 +31,12 @@ Writing the contract before the implementation forces you to think through the i
 If you find yourself writing "TBD" because you haven't thought it through yet, go back
 to `/design` and resolve it there.
 
+### 2b. UI docs — design contract before code (only if `/impact` reported `UI surface: yes`)
+
+- Update `docs/ux-patterns.md` for any new token, component or pattern (a new pattern gets a row in the component inventory in the same change). If the project has no `docs/ux-patterns.md`, start from `shared/ui/templates/ux-patterns.md`.
+- Record project overrides of the UI house style (`shared/ui/`) at the top of that file, each with a reason.
+- Write a short design note with **before/after values** (sizes, tokens, spacing) and the manual-test ids that cover it.
+
 ### 3. MFT scripts — write test scenarios before coding
 
 Add numbered scenarios to `docs/manual-test.md` for the feature being built.
