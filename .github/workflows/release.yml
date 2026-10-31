@@ -1,0 +1,64 @@
+# Build@Scale with AI: release workflow. This repository is the source of truth for the framework.
+# When VERSION changes on main, this creates the GitHub Release v<VERSION> using that version's section of CHANGELOG.md.
+# It needs no secret: the built-in GITHUB_TOKEN with contents: write is enough.
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [VERSION]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Read and check the version
+        id: ver
+        run: |
+          VERSION=$(tr -d '[:space:]' < VERSION)
+          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "VERSION must look like 1.2.3, got: $VERSION"; exit 1
+          fi
+          if ! grep -q "^## \[${VERSION}\]" CHANGELOG.md; then
+            echo "CHANGELOG.md has no section '## [${VERSION}]'. Add it before releasing."; exit 1
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Skip if the release already exists
+        id: exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v${{ steps.ver.outputs.version }}" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release v${{ steps.ver.outputs.version }} already exists; nothing to do."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract the changelog section
+        if: steps.exists.outputs.exists == 'false'
+        run: |
+          VERSION=${{ steps.ver.outputs.version }}
+          awk "/^## \[${VERSION}\]/{found=1; next} found && /^## \[/{exit} found{print}" CHANGELOG.md > "$RUNNER_TEMP/release-notes.md"
+          test -s "$RUNNER_TEMP/release-notes.md" || { echo "The changelog section for ${VERSION} is empty."; exit 1; }
+
+      - name: Create the release
+        if: steps.exists.outputs.exists == 'false'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION=${{ steps.ver.outputs.version }}
+          gh release create "v${VERSION}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Build@Scale with AI v${VERSION}" \
+            --notes-file "$RUNNER_TEMP/release-notes.md"
