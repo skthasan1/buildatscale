@@ -1,89 +1,71 @@
 # Build@Scale with AI
 
-### The production-ready AI development framework. For everyone.
+### Production-ready AI development. For everyone.
 
-> Built by Siva Kannathasan — 20 years of product engineering, distilled into skills your AI agent follows automatically.
-
----
-
-Vibe coding is great at getting you to a working demo fast. The problem hits later: no tests, no documentation, no security review, no audit trail, and design decisions made by the AI without asking you. What looked like a product is actually a prototype held together with shortcuts.
-
-**Build@Scale with AI** solves that. It gives your AI agent the same habits a senior engineer uses on every feature — before writing a single line of code. The result isn't just code that runs. It's code that scales, that you can hand to another developer, that you can still understand six months from now.
-
-You don't need coding experience to use it. You just need Claude Code.
+> Built by Siva Kannathasan: 20 years of product engineering, distilled into skills your AI agent follows automatically.
 
 ---
 
-## How it works in 3 steps
+## The problem
 
-### Step 1 — Add the framework to your project
+Vibe coding gets you a working demo fast. Then it catches up with you: no tests, no documentation, no security review, no audit trail, and design decisions the AI made without asking you. What looked like a product is a prototype held together with shortcuts.
 
-Open your terminal inside your project folder and run:
+## Who it is for
+
+- **Founders and non-coders** building a real product with an AI agent.
+- **Developers** who want a senior engineer's habits on every feature.
+- **Teams** that need code another person can understand six months from now.
+
+You do not need coding experience. You need Claude Code.
+
+## What it does
+
+It gives your AI agent the habits of a senior engineer, on every feature, before it writes a line of code:
+
+1. **Analyses impact first.** Maps every file and system the change touches.
+2. **Presents options, not decisions.** Two or three approaches with the trade-offs, then waits for your approval.
+3. **Writes the contract before the code.** Docs are updated first.
+4. **Builds tests alongside the code.** Not after, not later.
+5. **Reviews its own work.** A 10-point checklist before anything is called done.
+6. **Tests it manually,** like a real user would.
+7. **Re-reviews after fixes,** to catch what the fixes broke.
+8. **Closes the session properly.** Project memory is updated so the next session picks up cleanly.
+
+You describe what you want. Claude does the engineering. You approve the direction at each step.
+
+## Set it up in 3 steps
+
+**1. Add the framework to your project.** In a terminal inside your project folder (an empty folder works for a new project):
 
 ```
 git clone https://github.com/skthasan1/buildatscale shared
 ```
 
-This downloads the framework into a `shared/` folder inside your project. That's all.
-
-> **Don't have a project folder yet?** Create an empty folder on your desktop, open your terminal there, and run the command above.
-
----
-
-### Step 2 — Paste this prompt into Claude Code
-
-Open Claude Code in your project folder. Copy and paste this **exactly**:
+**2. Paste this into Claude Code,** exactly:
 
 ```
 Set up the production framework: copy shared/commands/*.md to .claude/commands/, copy shared/settings-template.json to .claude/settings.json, and copy shared/VERSION to .claude/buildatscale-version. Then read shared/FRAMEWORK.md so you understand the methodology. After setup: run a full gap analysis — compare the current project state against the FRAMEWORK.md Session 0 checklist — then build everything missing (CLAUDE.md, Tier 1 docs, test baseline, plan-rows) before starting any feature work. Report what was built.
 ```
 
-Claude will set everything up and build any missing framework components automatically. It takes 2–5 minutes depending on how much is missing.
+Claude sets everything up and builds what is missing. It takes two to five minutes.
 
-> The `buildatscale-version` file records which version you have installed. It's what the `/upgrade` command uses to show you only what changed since your install.
-
----
-
-### Step 3 — Tell Claude what you want to build
-
-Now just describe your app. For example:
-
-> *"I want to build a subscription-based recipe app where users can save their favourite recipes and share them with friends."*
-
-Claude will ask you a few clarifying questions, present you with design options (not just do things without asking), write the code with tests, review its own work, and tell you when something needs your decision.
-
-**You stay in control. Claude does the engineering.**
-
----
+**3. Tell Claude what you want to build.** For example: *"I want a subscription recipe app where users save recipes and share them with friends."* It asks a few questions, shows you options, builds with tests, reviews its own work and tells you when it needs your decision.
 
 ## What changes
 
 | Without this framework | With this framework |
 |---|---|
-| Claude starts coding immediately | Claude analyzes what the change affects before writing anything |
-| You find out about design decisions after they're built | Claude presents 2–3 options and waits for your approval |
-| Tests are an afterthought (or missing) | Tests are written alongside every feature, automatically |
-| Documentation drifts or doesn't exist | Docs are updated before code is written, not after |
-| "It works on my machine" | Every feature goes through a 10-point review before it's marked done |
-| Claude asks permission for every small action | Routine checks (running tests, reading files, linting) happen automatically |
-| Sessions are disconnected — Claude forgets what was built | Every session ends with a summary committed to the project so nothing is lost |
+| Claude starts coding immediately | Claude analyses what the change affects first |
+| You learn about design decisions after they are built | Claude presents options and waits for your approval |
+| Tests are an afterthought | Tests are written with every feature |
+| Documentation drifts or does not exist | Docs are updated before the code |
+| "It works on my machine" | Every feature passes a 10-point review |
+| Claude asks permission for every small action | Routine checks (tests, reading, linting) run automatically |
+| Sessions are disconnected | Every session ends with a committed summary |
 
----
+## Running several AI agents?
 
-## What the framework gives your AI
-
-When you install this framework, Claude follows an 8-step process for every feature it builds:
-
-1. **Analyses impact first** — before any code, maps every file and system the change touches
-2. **Presents options, not decisions** — shows you 2–3 approaches and explains the trade-offs
-3. **Writes the contract before the code** — documents what the feature does before implementing it
-4. **Builds tests alongside the code** — not after, not "later", alongside
-5. **Reviews its own work** — 10-point checklist before declaring anything done
-6. **Tests it manually** — runs through the feature like a real user would
-7. **Re-reviews after fixes** — catches the new problems that fixes sometimes introduce
-8. **Closes the session properly** — updates project memory so the next session picks up cleanly
-
-None of this requires you to know how to code. You describe what you want. Claude does the engineering. You approve the direction at each step.
+Add **[Build@Scale AI Dev Team](https://github.com/skthasan1/bas_aidevteam)**: roles, a GitHub protocol and small tools for running a team of AI workers across projects, with people deciding. It needs this framework in every project.
 
 ---
 
@@ -264,4 +246,4 @@ When multiple developers use this on the same project:
 
 ## License
 
-**Build@Scale with AI** is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — use it, adapt it, build products with it, share it with your team. Keep the attribution: *"Build@Scale with AI by Siva Kannathasan"*.
+**Build@Scale with AI** is licensed under [CC BY 4.0](LICENSE) — use it, adapt it, build products with it, share it with your team. Keep the attribution: *"Build@Scale with AI by Siva Kannathasan"*.
